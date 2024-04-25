@@ -3,6 +3,12 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { Timer } from 'three/addons/misc/Timer.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import Stats from 'https://cdn.jsdelivr.net/npm/stats-js@1.0.1/src/Stats.js';
+
+const stats = new Stats();
+document.body.appendChild(stats.domElement);
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -12,13 +18,16 @@ const renderer = new THREE.WebGLRenderer({
 });
 document.body.appendChild(renderer.domElement);
 
+const controls = new OrbitControls(camera, renderer.domElement);
+
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 composer.addPass(new OutputPass());
 
+const pixelRatio = .25;
 function onResize() {
-	renderer.setPixelRatio(.5);
-	composer.setPixelRatio(.5);
+	renderer.setPixelRatio(pixelRatio);
+	composer.setPixelRatio(pixelRatio);
 	renderer.setSize(window.innerWidth, window.innerHeight, false);
 	composer.setSize(window.innerWidth, window.innerHeight);
 	camera.aspect = window.innerWidth / window.innerHeight;
@@ -50,16 +59,43 @@ camera.updateProjectionMatrix();
 
 
 const pointer = new THREE.Vector2();
+const raycaster = new THREE.Raycaster();
+const player = await new Promise(resolve => new GLTFLoader().load(
+	'../../assets/player.glb',
+	gltf => {
+		gltf.scene.scale.set(1.5, 1.5, 1.5);
+		resolve(gltf.scene);
+	}
+));
+scene.add(player);
+window.p = player;
 
-const player = {
-
-};
-
-window.addEventListener('mousemove', event => {
+window.addEventListener('pointermove', event => {
 	pointer.set(
 		-1 + 2 * event.clientX / window.innerWidth,
 		1 - 2 * event.clientY / window.innerHeight
 	);
+})
+
+const ball = new THREE.Mesh(
+	new THREE.IcosahedronGeometry(.1, 2),
+	new THREE.MeshBasicMaterial(0xff0000)
+);
+ball.visible = false;
+scene.add(ball);
+const clickable = room;
+window.addEventListener('pointerdown', () => {
+	raycaster.setFromCamera(pointer, camera);
+	const intersects = raycaster.intersectObject(clickable);
+	if (intersects.length === 0) {
+		ball.visible = false;
+		return;
+	};
+	console.log(intersects[0]);
+	const point = intersects[0].point;
+	// ball.position.copy(point);
+	// ball.visible = true;
+	player.position.copy(point);
 })
 function animate() {
 	requestAnimationFrame(animate);
@@ -68,6 +104,8 @@ function animate() {
 	// camera.lookAt(new THREE.Vector3());
 
 	composer.render();
+	stats.update();
+	controls.update();
 }
 
 animate();
