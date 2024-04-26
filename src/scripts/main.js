@@ -61,9 +61,9 @@ camera.updateProjectionMatrix();
 const pointer = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
 const player = await new Promise(resolve => new GLTFLoader().load(
-	'../../assets/player.glb',
+	'../../assets/frog.glb',
 	gltf => {
-		gltf.scene.scale.set(1.5, 1.5, 1.5);
+		console.log(gltf);
 		resolve(gltf.scene);
 	}
 ));
