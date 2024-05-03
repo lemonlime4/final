@@ -89,8 +89,8 @@ const player = {
 	)),
 	path: null,
 	walkSpeed: 1,
-	newOrientation: null,
-	turnSpeed: 10,
+	turn: null,
+	turnSpeed: 3,
 	moveTo(point) {
 		const dir = point.clone().sub(this.model.position);
 		this.path = {
@@ -100,23 +100,26 @@ const player = {
 			completion: 0,
 		};
 		dir.set(dir.x, 0, dir.z).normalize();
-		this.newOrientation = new THREE.Quaternion()
-			.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir);
+		this.turn = {
+		    start: this.model.quaternion.clone(),
+		    end: new THREE.Quaternion()
+			    .setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir),
+			completion: 0
+		};
 	},
 
 	update(dt) {
 		dt = 1 / 40;
 
 		// turn player
-		if (this.newOrientation) {
-			this.model.quaternion.rotateTowards(
-				this.newOrientation,
-				this.turnSpeed * dt
-			);
-			if (this.model.quaternion.equals(this.newOrientation)) {
-				this.newOrientation = null;
+		if (this.turn) {
+		    this.turn.completion += this.turnSpeed * dt;
+			this.model.quaternion
+			    .copy(this.turn.start)
+			    .slerp(this.turn.end, this.turn.completion);
+			if (this.turn.completion > 1) {
+				this.turn = null;
 			}
-			return;
 		}
 		// move player
 		if (this.path) {
@@ -147,7 +150,11 @@ window.addEventListener('pointermove', event => {
 
 const clickable = map;
 const raycaster = new THREE.Raycaster();
-window.addEventListener('pointerdown', () => {
+window.addEventListener('mousedown', () => {
+    pointer.set(
+    -1 + 2 * event.clientX / window.innerWidth,
+    1 - 2 * event.clientY / window.innerHeight
+);
 	raycaster.setFromCamera(pointer, camera);
 	const intersects = raycaster.intersectObject(clickable);
 	if (intersects.length === 0) {
