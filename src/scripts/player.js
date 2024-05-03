@@ -7,6 +7,8 @@ export class Player {
 
     setPosition(position) {
         this.position.copy(position);
-        this.model.position.copy(position);
+        this.model.position.set(position.x, 0, position.y);
     }
+
+
 }
