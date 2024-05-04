@@ -94,16 +94,16 @@ const player = {
 	moveTo(point) {
 		const dir = point.clone().sub(this.model.position);
 		this.path = {
-			dir: dir.clone().normalize(),
 			start: this.model.position.clone(),
+			end: point.clone(),
 			length: dir.length(),
 			completion: 0,
 		};
 		dir.set(dir.x, 0, dir.z).normalize();
 		this.turn = {
-		    start: this.model.quaternion.clone(),
-		    end: new THREE.Quaternion()
-			    .setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir),
+			start: this.model.quaternion.clone(),
+			end: new THREE.Quaternion()
+				.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir),
 			completion: 0
 		};
 	},
@@ -113,35 +113,37 @@ const player = {
 
 		// turn player
 		if (this.turn) {
-		    this.turn.completion += this.turnSpeed * dt;
+			this.turn.completion += this.turnSpeed * dt;
 			this.model.quaternion
-			    .copy(this.turn.start)
-			    .slerp(this.turn.end, this.turn.completion);
+				.copy(this.turn.start)
+				.slerp(this.turn.end, this.turn.completion);
 			if (this.turn.completion > 1) {
 				this.turn = null;
 			}
 		}
 		// move player
 		if (this.path) {
-			this.path.completion += dt * this.walkSpeed;
+			this.path.completion += dt * this.walkSpeed / this.path.length;
 			this.model.position.copy(
-				this.path.start.clone().addScaledVector(
-					this.path.dir,
+				this.path.start.clone().lerp(
+					this.path.end,
 					this.path.completion
 				)
 			);
-			if (this.path.completion > this.path.length) {
+			if (this.path.completion > 1) {
 				this.path = null;
 			}
 		}
 	}
 };
 window.p = player;
-window.V = THREE.Vector3;
 
-const pointer = new THREE.Vector2();
+
+const mouse = {
+	position: new THREE.Vector2(0, 0),
+};
 window.addEventListener('pointermove', event => {
-	pointer.set(
+	mouse.position.set(
 		-1 + 2 * event.clientX / window.innerWidth,
 		1 - 2 * event.clientY / window.innerHeight
 	);
@@ -151,11 +153,11 @@ window.addEventListener('pointermove', event => {
 const clickable = map;
 const raycaster = new THREE.Raycaster();
 window.addEventListener('mousedown', () => {
-    pointer.set(
-    -1 + 2 * event.clientX / window.innerWidth,
-    1 - 2 * event.clientY / window.innerHeight
-);
-	raycaster.setFromCamera(pointer, camera);
+	mouse.position.set(
+		-1 + 2 * event.clientX / window.innerWidth,
+		1 - 2 * event.clientY / window.innerHeight
+	);
+	raycaster.setFromCamera(mouse.position, camera);
 	const intersects = raycaster.intersectObject(clickable);
 	if (intersects.length === 0) {
 		return;
