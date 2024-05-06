@@ -1,3 +1,7 @@
+The nuance is in the juxtaposition of 3d walking and flat ui.
+
+
+
 # Fullscreen / pointer lock
 
 motivation: seamless switch from first person to fixed camera

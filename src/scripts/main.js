@@ -168,13 +168,100 @@ window.addEventListener('mousedown', () => {
 	player.moveTo(point);
 })
 
+
+
+class FixedCameraController {
+	constructor(cameraFrom, cameraTo) {
+		this.from = cameraFrom;
+		this.to = cameraTo;
+		;
+	}
+	updateCamera() {
+		camera.position.copy(this.from);
+		camera.lookAt(this.to);
+	}
+}
+
+class FirstPersonController {
+	constructor() {
+		this.dir = new THREE.Vector3(0, 0, 1);
+	}
+	updateCamera() {
+		camera.position.copy(player.model.position);
+	}
+}
+
+
+const controls = {
+	zones: [
+		{
+			bounds: new THREE.Box3(
+				new THREE.Vector3(-.5, 0, -.5).add(player.model.position),
+				new THREE.Vector3(.5, .5, .5).add(player.model.position)
+			),
+			controls: new FixedCameraController(
+				new THREE.Vector3(0, 20, 0),
+				new THREE.Vector3(0, 0, 0)
+			)
+		},
+		{
+			bounds: new THREE.Box3(
+				new THREE.Vector3(-5, -1, -3),
+				new THREE.Vector3(-1, 1, 1)
+			),
+			controls: new FixedCameraController(
+				new THREE.Vector3(3, 15, 15),
+				new THREE.Vector3(0, 0, -0)
+			),
+		},
+		{
+			bounds: new THREE.Box3(
+				new THREE.Vector3(3, -1, -1),
+				new THREE.Vector3(8, 1, 1),
+			),
+			controls: new FixedCameraController(
+				new THREE.Vector3(-8, 15, 1),
+				new THREE.Vector3(0, 0, 0)
+			)
+		},
+		{
+			bounds: new THREE.Box3(
+				new THREE.Vector3(2, -1, 2),
+				new THREE.Vector3(6, 1, 5)
+			),
+			controls: new FirstPersonController(
+				new THREE.Vector3(-8, 10, 1),
+				new THREE.Vector3(0, 0, 0)
+			)
+		}
+	],
+	activeZone: null,
+	update() {
+		const pos = player.model.position;
+		if (this.activeZone?.bounds.containsPoint(pos))
+			return;
+		const zone = this.zones
+			.find(zone => zone.bounds.containsPoint(pos));
+		if (!zone) return;
+		this.activeZone = zone;
+		this.activeZone.controls.updateCamera();
+	}
+};
+for (const zone of controls.zones) {
+	scene.add(new THREE.Box3Helper(zone.bounds));
+}
+
+
+
 function animate() {
 	requestAnimationFrame(animate);
 
 
 	player.update();
+	controls.update();
 	composer.render();
 	stats.update();
+	console.log(controls.zones.indexOf(controls.activeZone));
 }
 
 animate();

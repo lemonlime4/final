@@ -1,0 +1,1 @@
+const canv = new HTMLCanvasElement();
