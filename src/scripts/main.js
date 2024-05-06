@@ -88,7 +88,7 @@ const player = {
 		}
 	)),
 	path: null,
-	walkSpeed: 1,
+	moveSpeed: 1,
 	turn: null,
 	turnSpeed: 3,
 	moveTo(point) {
@@ -109,7 +109,6 @@ const player = {
 	},
 
 	update(dt) {
-		dt = 1 / 40;
 
 		// turn player
 		if (this.turn) {
@@ -123,7 +122,7 @@ const player = {
 		}
 		// move player
 		if (this.path) {
-			this.path.completion += dt * this.walkSpeed / this.path.length;
+			this.path.completion += dt * this.moveSpeed / this.path.length;
 			this.model.position.copy(
 				this.path.start.clone().lerp(
 					this.path.end,
@@ -136,7 +135,6 @@ const player = {
 		}
 	}
 };
-window.p = player;
 
 
 const mouse = {
@@ -169,7 +167,7 @@ window.addEventListener('mousedown', () => {
 })
 
 
-
+window.c = camera;
 class FixedCameraController {
 	constructor(cameraFrom, cameraTo) {
 		this.from = cameraFrom;
@@ -180,16 +178,77 @@ class FixedCameraController {
 		camera.position.copy(this.from);
 		camera.lookAt(this.to);
 	}
+	updatePlayer() {
+		;
+	}
 }
+
+const keys = {
+	up: false,
+	down: false,
+	left: false,
+	right: false
+};
+window.addEventListener('keydown', event => {
+	if (event.code === 'KeyW') keys.up = true;
+	if (event.code === 'KeyA') keys.left = true;
+	if (event.code === 'KeyS') keys.down = true;
+	if (event.code === 'KeyD') keys.right = true;
+})
+window.addEventListener('keyup', event => {
+	if (event.code === 'KeyW') keys.up = false;
+	if (event.code === 'KeyA') keys.left = false;
+	if (event.code === 'KeyS') keys.down = false;
+	if (event.code === 'KeyD') keys.right = false;
+})
+const pointer = {
+	dx: 0,
+	dy: 0
+};
+window.addEventListener('mousemove', event => {
+	pointer.dx = event.movementX;
+	pointer.dy = event.movementY;
+})
 
 class FirstPersonController {
 	constructor() {
-		this.dir = new THREE.Vector3(0, 0, 1);
+		const playerAngle = new THREE.Euler(0, 0, 0, 'YXZ')
+			.setFromQuaternion(player.model.quaternion);
+		this.angles = playerAngle;
+		this.turnSpeed = 0.01;
 	}
 	updateCamera() {
-		camera.position.copy(player.model.position);
+		this.angles.x -= this.turnSpeed * pointer.dy;
+		this.angles.y -= this.turnSpeed * pointer.dx;
+		pointer.dx = 0;
+		pointer.dy = 0;
+		if (player.path) {
+			this.angles.setFromQuaternion(player.model.quaternion);
+			this.angles.y += Math.PI;
+		}
+		camera.fov = 70;
+		camera.updateProjectionMatrix();
+		camera.position.copy(player.model.position)
+			.add(new THREE.Vector3(0, 1, 0));
+		camera.quaternion.setFromEuler(this.angles);
+		camera.updateProjectionMatrix();
+	}
+	updatePlayer(dt) {
+		if (player.path) return;
+		player.model.quaternion.setFromEuler(
+			new THREE.Euler(0, this.angles.y - Math.PI, 0)
+		);
+		const dx = dt * player.moveSpeed * (keys.right - keys.left);
+		const dz = dt * player.moveSpeed * (keys.up - keys.down);
+		const q = player.model.quaternion;
+		console.log(dx, dz);
+		player.model.position.addScaledVector(
+			new THREE.Vector3(-1, 0, 0).applyQuaternion(q), dx);
+		player.model.position.addScaledVector(
+			new THREE.Vector3(0, 0, 1).applyQuaternion(q), dz);
 	}
 }
+
 
 
 const controls = {
@@ -236,7 +295,11 @@ const controls = {
 		}
 	],
 	activeZone: null,
-	update() {
+	update(dt) {
+		if (this.activeZone) {
+			this.activeZone.controls.updateCamera();
+			this.activeZone.controls.updatePlayer(dt);
+		}
 		const pos = player.model.position;
 		if (this.activeZone?.bounds.containsPoint(pos))
 			return;
@@ -244,7 +307,6 @@ const controls = {
 			.find(zone => zone.bounds.containsPoint(pos));
 		if (!zone) return;
 		this.activeZone = zone;
-		this.activeZone.controls.updateCamera();
 	}
 };
 for (const zone of controls.zones) {
@@ -252,16 +314,17 @@ for (const zone of controls.zones) {
 }
 
 
-
+scene.add(new THREE.AxesHelper(5));
+player.model.lookAt(new THREE.Vector3(0, 0, 10))
 function animate() {
 	requestAnimationFrame(animate);
+	const dt = 1 / 40;
 
-
-	player.update();
-	controls.update();
+	player.update(dt);
+	controls.update(dt);
 	composer.render();
 	stats.update();
-	console.log(controls.zones.indexOf(controls.activeZone));
+	// console.log(controls.zones.indexOf(controls.activeZone));
 }
 
 animate();
