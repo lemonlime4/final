@@ -6,8 +6,6 @@ import { Timer } from 'three/addons/misc/Timer.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import Stats from 'three/addons/libs/stats.module.js';
 
-import { game } from './game.js';
-
 const stats = new Stats();
 document.body.appendChild(stats.domElement);
 
