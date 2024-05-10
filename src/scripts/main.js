@@ -18,11 +18,12 @@ const renderer = new THREE.WebGLRenderer({
 document.body.appendChild(renderer.domElement);
 
 
+
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 composer.addPass(new OutputPass());
 
-const pixelRatio = .5;
+const pixelRatio = 1/3;
 function onResize() {
 	renderer.setPixelRatio(pixelRatio);
 	composer.setPixelRatio(pixelRatio);
@@ -86,7 +87,7 @@ const player = {
 		}
 	)),
 	path: null,
-	moveSpeed: 1,
+	moveSpeed: 1.5,
 	turn: null,
 	turnSpeed: 3,
 	moveTo(point) {
@@ -135,37 +136,75 @@ const player = {
 };
 
 
-const mouse = {
-	position: new THREE.Vector2(0, 0),
+
+
+const keyDirectionMapping = new Map([
+	['KeyW', 'up'],
+	['ArrowUp', 'up'],
+	['KeyA', 'left'],
+	['ArrowLeft', 'left'],
+	['KeyS', 'down'],
+	['ArrowDown', 'down'],
+	['KeyD', 'right'],
+	['ArrowRight', 'right'],
+]);
+const keyboard = {
+	up: false,
+	down: false,
+	left: false,
+	right: false,
 };
-window.addEventListener('pointermove', event => {
-	mouse.position.set(
-		-1 + 2 * event.clientX / window.innerWidth,
-		1 - 2 * event.clientY / window.innerHeight
-	);
-})
+const mouse = {
+	x: 0,
+	y: 0,
+	dx: 0,
+	dy: 0,
+};
+let isFirstPerson = false;
+
+window.addEventListener('keydown', event => {
+	const direction = keyDirectionMapping.get(event.code);
+	if (direction === undefined) return;
+	keyboard[direction] = true;
+});
+
+window.addEventListener('keyup', event => {
+	const direction = keyDirectionMapping.get(event.code);
+	if (direction === undefined) return;
+	keyboard[direction] = false;
+});
+
+window.addEventListener('mousemove', event => {
+	mouse.dx = event.movementX;
+	mouse.dy = event.movementY;
+	if (isFirstPerson) {
+		mouse.x = window.innerWidth / 2;
+		mouse.y = window.innerHeight / 2;
+		return;
+	}
+	mouse.x = Math.max(0, Math.min(window.innerWidth, event.clientX));
+	mouse.y = Math.max(0, Math.min(window.innerHeight, event.clientY));
+});
 
 
-const clickable = map;
+const clickable = [map];
 const raycaster = new THREE.Raycaster();
 window.addEventListener('mousedown', () => {
-	mouse.position.set(
-		-1 + 2 * event.clientX / window.innerWidth,
-		1 - 2 * event.clientY / window.innerHeight
+	const screenspaceMouse = new THREE.Vector2(
+		-1 + 2 * mouse.x / window.innerWidth,
+		+1 - 2 * mouse.y / window.innerHeight
 	);
-	raycaster.setFromCamera(mouse.position, camera);
-	const intersects = raycaster.intersectObject(clickable);
-	if (intersects.length === 0) {
+	raycaster.setFromCamera(screenspaceMouse, camera);
+	const intersects = raycaster.intersectObjects(clickable, true);
+	if (intersects.length === 0)
 		return;
-	};
 	const point = intersects[0].point;
-	// ball.position.copy(point);
-	// ball.visible = true;
 	player.moveTo(point);
 })
 
 
-window.c = camera;
+
+
 class FixedCameraController {
 	constructor(cameraFrom, cameraTo) {
 		this.from = cameraFrom;
@@ -181,32 +220,6 @@ class FixedCameraController {
 	}
 }
 
-const keys = {
-	up: false,
-	down: false,
-	left: false,
-	right: false
-};
-window.addEventListener('keydown', event => {
-	if (event.code === 'KeyW') keys.up = true;
-	if (event.code === 'KeyA') keys.left = true;
-	if (event.code === 'KeyS') keys.down = true;
-	if (event.code === 'KeyD') keys.right = true;
-})
-window.addEventListener('keyup', event => {
-	if (event.code === 'KeyW') keys.up = false;
-	if (event.code === 'KeyA') keys.left = false;
-	if (event.code === 'KeyS') keys.down = false;
-	if (event.code === 'KeyD') keys.right = false;
-})
-const pointer = {
-	dx: 0,
-	dy: 0
-};
-window.addEventListener('mousemove', event => {
-	pointer.dx = event.movementX;
-	pointer.dy = event.movementY;
-})
 
 class FirstPersonController {
 	constructor() {
@@ -216,10 +229,10 @@ class FirstPersonController {
 		this.turnSpeed = 0.01;
 	}
 	updateCamera() {
-		this.angles.x -= this.turnSpeed * pointer.dy;
-		this.angles.y -= this.turnSpeed * pointer.dx;
-		pointer.dx = 0;
-		pointer.dy = 0;
+		this.angles.x -= this.turnSpeed * mouse.dy;
+		this.angles.y -= this.turnSpeed * mouse.dx;
+		mouse.dx = 0;
+		mouse.dy = 0;
 		if (player.path) {
 			this.angles.setFromQuaternion(player.model.quaternion);
 			this.angles.y += Math.PI;
@@ -231,19 +244,12 @@ class FirstPersonController {
 		camera.quaternion.setFromEuler(this.angles);
 		camera.updateProjectionMatrix();
 	}
+
 	updatePlayer(dt) {
 		if (player.path) return;
 		player.model.quaternion.setFromEuler(
 			new THREE.Euler(0, this.angles.y - Math.PI, 0)
 		);
-		const dx = dt * player.moveSpeed * (keys.right - keys.left);
-		const dz = dt * player.moveSpeed * (keys.up - keys.down);
-		const q = player.model.quaternion;
-		console.log(dx, dz);
-		player.model.position.addScaledVector(
-			new THREE.Vector3(-1, 0, 0).applyQuaternion(q), dx);
-		player.model.position.addScaledVector(
-			new THREE.Vector3(0, 0, 1).applyQuaternion(q), dz);
 	}
 }
 
@@ -294,6 +300,12 @@ const controls = {
 	],
 	activeZone: null,
 	update(dt) {
+		const dx = dt * player.moveSpeed * (keyboard.right - keyboard.left);
+		const dz = dt * player.moveSpeed * (keyboard.up - keyboard.down);
+		const v = new THREE.Vector3(-dx, 0, dz)
+			.applyQuaternion(player.model.quaternion);
+		player.model.position.add(v);
+
 		if (this.activeZone) {
 			this.activeZone.controls.updateCamera();
 			this.activeZone.controls.updatePlayer(dt);
