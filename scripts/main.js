@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { Timer } from 'three/addons/misc/Timer.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -21,9 +22,16 @@ document.body.appendChild(renderer.domElement);
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
+const shader = new ShaderPass({
+	name: 'Post processing shader',
+	uniforms: {
+		tDiffuse: { value: null },
+		threshold: { value: new THREE.TextureLoader().load('../') }
+	}
+});
 composer.addPass(new OutputPass());
 
-const pixelRatio = 1/3;
+const pixelRatio = 1 / 3;
 function onResize() {
 	renderer.setPixelRatio(pixelRatio);
 	composer.setPixelRatio(pixelRatio);
