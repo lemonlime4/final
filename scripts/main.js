@@ -26,19 +26,26 @@ const shader = new ShaderPass({
 	name: 'Post processing shader',
 	uniforms: {
 		tDiffuse: { value: null },
-		threshold: { value: new THREE.TextureLoader().load('../') }
-	}
+		threshold: { value: new THREE.TextureLoader().load('../assets/bluenoise.png') }
+	},
+	vertexShader: `varying vec2 UV;void main(){UV=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1);}`,
+	fragmentShader: await (await fetch('./scripts/postprocessing.frag')).text()
 });
+composer.addPass(shader);
 composer.addPass(new OutputPass());
 
-const pixelRatio = 1 / 3;
+const pixelRatio = .5;
 function onResize() {
 	renderer.setPixelRatio(pixelRatio);
 	composer.setPixelRatio(pixelRatio);
-	renderer.setSize(window.innerWidth, window.innerHeight, false);
+	renderer.setSize(window.innerWidth, window.innerHeight, true);
 	composer.setSize(window.innerWidth, window.innerHeight);
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
+	const dim = new THREE.Vector2();
+	renderer.getSize(dim);
+	// renderer.domElement.style.width = 2 * dim.x + 'px';
+	// renderer.domElement.style.height = 2 * dim.y + 'px';
 }
 onResize();
 window.addEventListener('resize', onResize);
