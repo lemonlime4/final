@@ -96,7 +96,7 @@ const player = {
 		gltf => {
 			console.log(gltf);
 			gltf.scene.position.set(0, 0, 1);
-			gltf.scene.scale.set(1.5, 1.5, 1.5)
+			gltf.scene.children[0].children[0].material.metalness = 0;
 			scene.add(gltf.scene);
 			resolve(gltf.scene);
 		}
