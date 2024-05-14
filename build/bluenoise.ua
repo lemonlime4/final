@@ -1,16 +1,13 @@
-# image dimensions
-Dim ← 512_512
+Dim ← 128_128
 Sigma ← 1.9
+
 Divisor ← ××2.Sigma
-Maxdistsq ← ×.⬚0⊢⊚ =0ⁿ:e¯÷Divisor×. ⇡↥°⊟Dim
-Dist ← /+ⁿ2-⌵-⟜:÷2Dim
 ELUT ← ≡≡(
-  /+ⁿ2-⌵-⟜:÷2Dim
-  ⁿ:e¯÷Divisor
+  /+ⁿ2-⌵-⟜:÷2Dim # toroidal distance
+  ⁿ:e¯÷Divisor   # gaussian
 ) ⇡Dim
 
 # generate energy table at pixel
-
 Energy ← ↻:ELUT¯
 Up ← ⍜⊙⍉▽⟜▽
 
@@ -68,4 +65,4 @@ Up ← ⍜⊙⍉▽⟜▽
 ⋅⋅⊙(°1-/×Dim)
 ÷/×Dim-1
 &p"Writing"
-&fwa "assets/bluenoise.png" &ime "png"
+&fwa "bluenoisetest.png" &ime "png"

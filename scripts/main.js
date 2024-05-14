@@ -64,7 +64,7 @@ camera.updateProjectionMatrix();
 // scene.add(map);
 
 const map = await new Promise(resolve => new GLTFLoader().load(
-	'../../assets/scene.glb',
+	'../assets/scene.glb',
 	gltf => {
 		for (const mesh of gltf.scene.children) {
 			mesh.material = new THREE.MeshStandardMaterial({
@@ -92,7 +92,7 @@ scene.add(map);
 
 const player = {
 	model: await new Promise(resolve => new GLTFLoader().load(
-		'../../assets/frog.glb',
+		'../player.glb',
 		gltf => {
 			console.log(gltf);
 			gltf.scene.position.set(0, 0, 1);
