@@ -117,6 +117,7 @@ const player = {
 			completion: 0
 		};
 		this.walkAction.enabled = true;
+		this.walkAction.setEffectiveWeight(1);
 		this.idleAction.crossFadeTo(this.walkAction, .5, true);
 	},
 
@@ -143,7 +144,7 @@ const player = {
 			);
 			if (this.path.completion > 1) {
 				this.path = null;
-				this.idleAction.enabled = true;
+				this.idleAction.setEffectiveWeight(1);
 				this.walkAction.crossFadeTo(this.idleAction, .3, false);
 			}
 		}
