@@ -24,8 +24,8 @@ Up ← ⍜⊙⍉▽⟜▽
 )∞
 ⊙⟜(&p⧻⊚)
 
-&p"Phase 1"
 # phase 1 - order the binary pattern
+&p"Phase 1"
 :⊙(⧻⊚.)            # number of ones
 ⊃(⊙⊙∘|↯Dim0⊙⊙∘|+1) # duplicate data for ordering alg
 ⍥(
@@ -37,8 +37,8 @@ Up ← ⍜⊙⍉▽⟜▽
   )
 )
 ⋅⋅⊙°0 # indices, energy, binary pattern, next index
-&p"Phase 2"
 # phase 2 - fill voids until 50% full
+&p"Phase 2"
 ⊃(⋅⋅⋅∘|⋅∘|⋅⋅⟨1|∞⟩|⊙⋅⋅∘) # reorder stack, invert bp
 -:⌊÷2/×Dim
 ⍥(
@@ -49,8 +49,8 @@ Up ← ⍜⊙⍉▽⟜▽
   | ⍜⊡⋅∘ ⊙⋅⋅⊙⟜(+1)
   )
 )
-&p"Phase 3"
 # phase 3 - fill all cluster of 0s
+&p"Phase 3"
 =1◌
 ∧(+Energy):↯Dim0⊚. # rebuild energy map
 +1-:/×Dim⊃⋅⋅⋅∘⊙⊙⊙∘
@@ -64,5 +64,6 @@ Up ← ⍜⊙⍉▽⟜▽
 )
 ⋅⋅⊙(°1-/×Dim)
 ÷/×Dim-1
+
 &p"Writing"
 &fwa "bluenoisetest.png" &ime "png"

@@ -11,7 +11,7 @@ const stats = new Stats();
 document.body.appendChild(stats.domElement);
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 const renderer = new THREE.WebGLRenderer({
 	canvas: document.querySelector('canvas'),
@@ -34,7 +34,7 @@ const shader = new ShaderPass({
 composer.addPass(shader);
 composer.addPass(new OutputPass());
 
-const pixelRatio = .5;
+const pixelRatio = 1;
 function onResize() {
 	renderer.setPixelRatio(pixelRatio);
 	composer.setPixelRatio(pixelRatio);
@@ -53,7 +53,7 @@ window.addEventListener('resize', onResize);
 
 
 
-camera.position.set(0, 20, 0);
+camera.position.set(0, 15, 0);
 camera.lookAt(new THREE.Vector3());
 camera.updateProjectionMatrix();
 
@@ -88,21 +88,17 @@ scene.add(map);
 	scene.add(light);
 }
 
-
-
+const playerGLTF = await new Promise(resolve =>
+	new GLTFLoader().load('../player.glb', resolve));
+playerGLTF.scene.children[0].children[0].material.metalness = 0;
+scene.add(playerGLTF.scene);
+const mixer = new THREE.AnimationMixer(playerGLTF.scene);
 const player = {
-	model: await new Promise(resolve => new GLTFLoader().load(
-		'../player.glb',
-		gltf => {
-			console.log(gltf);
-			gltf.scene.position.set(0, 0, 1);
-			gltf.scene.children[0].children[0].material.metalness = 0;
-			scene.add(gltf.scene);
-			resolve(gltf.scene);
-		}
-	)),
+	model: playerGLTF.scene,
+	idleAction: mixer.clipAction(playerGLTF.animations[1]),
+	walkAction: mixer.clipAction(playerGLTF.animations[0]),
 	path: null,
-	moveSpeed: 1.5,
+	moveSpeed: .8,
 	turn: null,
 	turnSpeed: 3,
 	moveTo(point) {
@@ -120,10 +116,12 @@ const player = {
 				.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir),
 			completion: 0
 		};
+		this.walkAction.enabled = true;
+		this.idleAction.crossFadeTo(this.walkAction, .5, true);
 	},
 
 	update(dt) {
-
+		mixer.update(dt);
 		// turn player
 		if (this.turn) {
 			this.turn.completion += this.turnSpeed * dt;
@@ -145,12 +143,17 @@ const player = {
 			);
 			if (this.path.completion > 1) {
 				this.path = null;
+				this.idleAction.enabled = true;
+				this.walkAction.crossFadeTo(this.idleAction, .3, false);
 			}
 		}
 	}
 };
-
-
+player.idleAction.setEffectiveWeight(1);
+player.walkAction.setEffectiveWeight(0);
+player.idleAction.play();
+player.walkAction.play();
+window.p = player;
 
 
 const keyDirectionMapping = new Map([
@@ -278,7 +281,7 @@ const controls = {
 				new THREE.Vector3(.5, .5, .5).add(player.model.position)
 			),
 			controls: new FixedCameraController(
-				new THREE.Vector3(0, 20, 0),
+				new THREE.Vector3(0, 15, 0),
 				new THREE.Vector3(0, 0, 0)
 			)
 		},
@@ -288,7 +291,7 @@ const controls = {
 				new THREE.Vector3(-1, 1, 1)
 			),
 			controls: new FixedCameraController(
-				new THREE.Vector3(3, 15, 15),
+				new THREE.Vector3(3, 5, 8),
 				new THREE.Vector3(0, 0, -0)
 			),
 		},
