@@ -16,7 +16,16 @@ const vec3 palette[16] = vec3[](
     vec3(0.031,0,0),vec3(0.125,0.102,0.043),vec3(0.263,0.157,0.09),vec3(0.286,0.161,0.063),vec3(0.137,0.263,0.035),vec3(0.365,0.31,0.118),vec3(0.612,0.42,0.125),vec3(0.663,0.133,0.059),vec3(0.169,0.204,0.486),vec3(0.169,0.455,0.035),vec3(0.816,0.792,0.251),vec3(0.91,0.627,0.467),vec3(0.416,0.58,0.671),vec3(0.835,0.769,0.702),vec3(0.988,0.906,0.431),vec3(0.988,0.98,0.886)
 );
 vec3 closestColor(vec3 x) {
-    return floor(8.*x)/7.;
+    float leastDist = 2e64;
+    vec3 color = vec3(0,1,0);
+    for (int i = 0; i < 16; i++) {
+        float dist = length(palette[i] - x);
+        if (dist < leastDist) {
+            leastDist = dist;
+            color = palette[i];
+        }
+    }
+    return color;
 }
 
 void main() {

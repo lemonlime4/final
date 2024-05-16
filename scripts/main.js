@@ -34,7 +34,7 @@ const shader = new ShaderPass({
 composer.addPass(shader);
 composer.addPass(new OutputPass());
 
-const pixelRatio = 1;
+const pixelRatio = .5;
 function onResize() {
 	renderer.setPixelRatio(pixelRatio);
 	composer.setPixelRatio(pixelRatio);
@@ -103,6 +103,11 @@ const player = {
 	turnSpeed: 3,
 	moveTo(point) {
 		const dir = point.clone().sub(this.model.position);
+		if (!this.path) {
+			this.walkAction.enabled = true;
+			this.walkAction.setEffectiveWeight(1);
+			this.idleAction.crossFadeTo(this.walkAction, .5, true);
+		}
 		this.path = {
 			start: this.model.position.clone(),
 			end: point.clone(),
@@ -116,9 +121,6 @@ const player = {
 				.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir),
 			completion: 0
 		};
-		this.walkAction.enabled = true;
-		this.walkAction.setEffectiveWeight(1);
-		this.idleAction.crossFadeTo(this.walkAction, .5, true);
 	},
 
 	update(dt) {
@@ -231,8 +233,6 @@ class FixedCameraController {
 		;
 	}
 	updateCamera() {
-		camera.position.copy(this.from);
-		camera.lookAt(this.to);
 	}
 	updatePlayer() {
 		;
@@ -250,6 +250,7 @@ class FirstPersonController {
 	updateCamera() {
 		this.angles.x -= this.turnSpeed * mouse.dy;
 		this.angles.y -= this.turnSpeed * mouse.dx;
+		this.angles.x = Math.min(Math.PI / 2, Math.max(-Math.PI / 2, this.angles.x));
 		mouse.dx = 0;
 		mouse.dy = 0;
 		if (player.path) {
@@ -269,6 +270,12 @@ class FirstPersonController {
 		player.model.quaternion.setFromEuler(
 			new THREE.Euler(0, this.angles.y - Math.PI, 0)
 		);
+
+		const dx = dt * player.moveSpeed * (keyboard.right - keyboard.left);
+		const dz = dt * player.moveSpeed * (keyboard.up - keyboard.down);
+		const v = new THREE.Vector3(-dx, 0, dz)
+			.applyQuaternion(player.model.quaternion);
+		player.model.position.add(v);
 	}
 }
 
@@ -278,56 +285,49 @@ const controls = {
 	zones: [
 		{
 			bounds: new THREE.Box3(
-				new THREE.Vector3(-.5, 0, -.5).add(player.model.position),
-				new THREE.Vector3(.5, .5, .5).add(player.model.position)
+				new THREE.Vector3(-.5, 0, -.5),
+				new THREE.Vector3(.5, .5, .5)
 			),
-			controls: new FixedCameraController(
-				new THREE.Vector3(0, 15, 0),
-				new THREE.Vector3(0, 0, 0)
-			)
+			camera: {
+				from: new THREE.Vector3(0, 15, 0),
+				to: new THREE.Vector3(0, 0, 0),
+			}
 		},
 		{
 			bounds: new THREE.Box3(
 				new THREE.Vector3(-5, -1, -3),
 				new THREE.Vector3(-1, 1, 1)
 			),
-			controls: new FixedCameraController(
-				new THREE.Vector3(3, 5, 8),
-				new THREE.Vector3(0, 0, -0)
-			),
+			camera: {
+				from: new THREE.Vector3(3, 5, 8),
+				to: new THREE.Vector3(0, 0, -0)
+			},
 		},
 		{
 			bounds: new THREE.Box3(
 				new THREE.Vector3(3, -1, -1),
 				new THREE.Vector3(8, 1, 1),
 			),
-			controls: new FixedCameraController(
-				new THREE.Vector3(-8, 15, 1),
-				new THREE.Vector3(0, 0, 0)
-			)
+			camera: {
+				from: new THREE.Vector3(-8, 15, 1),
+				to: new THREE.Vector3(0, 0, 0)
+			}
 		},
 		{
+			isFirstPerson: true,
 			bounds: new THREE.Box3(
 				new THREE.Vector3(2, -1, 2),
 				new THREE.Vector3(6, 1, 5)
 			),
-			controls: new FirstPersonController(
-				new THREE.Vector3(-8, 10, 1),
-				new THREE.Vector3(0, 0, 0)
-			)
+			camera: {
+				euler: new THREE.Euler(),
+			}
 		}
 	],
 	activeZone: null,
 	update(dt) {
-		const dx = dt * player.moveSpeed * (keyboard.right - keyboard.left);
-		const dz = dt * player.moveSpeed * (keyboard.up - keyboard.down);
-		const v = new THREE.Vector3(-dx, 0, dz)
-			.applyQuaternion(player.model.quaternion);
-		player.model.position.add(v);
-
-		if (this.activeZone) {
-			this.activeZone.controls.updateCamera();
-			this.activeZone.controls.updatePlayer(dt);
+		if (this.activeZone?.isFirstPerson) {
+			console.log('firsperson');
 		}
 		const pos = player.model.position;
 		if (this.activeZone?.bounds.containsPoint(pos))
@@ -335,6 +335,15 @@ const controls = {
 		const zone = this.zones
 			.find(zone => zone.bounds.containsPoint(pos));
 		if (!zone) return;
+
+		if (zone.isFirstPerson) {
+			camera.fov = 70;
+			camera.updateProjectionMatrix();
+		}
+		else {
+			camera.position.copy(zone.camera.from);
+			camera.lookAt(zone.camera.to);
+		}
 		this.activeZone = zone;
 	}
 };
@@ -357,3 +366,17 @@ function animate() {
 }
 
 animate();
+
+
+
+// for (const object of scene.children) {
+// 	scene.remove(object);
+// }
+// import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+// const l0 = new DRACOLoader();
+// l0.setDecoderPath('https://unpkg.com/three@0.164.1/examples/jsm/libs/draco/')
+// scene.add(await new Promise(res => new GLTFLoader().setDRACOLoader(l0).load('LittlestTokyo.glb', gltf => {
+// 	gltf.scene.scale.set(.05, .05, .05)
+// 	res(gltf.scene);
+// })))
+// scene.add(new THREE.HemisphereLight(0xffffff));
