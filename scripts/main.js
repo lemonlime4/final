@@ -98,7 +98,7 @@ const player = {
 	idleAction: mixer.clipAction(playerGLTF.animations[1]),
 	walkAction: mixer.clipAction(playerGLTF.animations[0]),
 	path: null,
-	moveSpeed: .8,
+	moveSpeed: 1,
 	turn: null,
 	turnSpeed: 3,
 	moveTo(point) {
@@ -226,59 +226,6 @@ window.addEventListener('mousedown', () => {
 
 
 
-class FixedCameraController {
-	constructor(cameraFrom, cameraTo) {
-		this.from = cameraFrom;
-		this.to = cameraTo;
-		;
-	}
-	updateCamera() {
-	}
-	updatePlayer() {
-		;
-	}
-}
-
-
-class FirstPersonController {
-	constructor() {
-		const playerAngle = new THREE.Euler(0, 0, 0, 'YXZ')
-			.setFromQuaternion(player.model.quaternion);
-		this.angles = playerAngle;
-		this.turnSpeed = 0.01;
-	}
-	updateCamera() {
-		this.angles.x -= this.turnSpeed * mouse.dy;
-		this.angles.y -= this.turnSpeed * mouse.dx;
-		this.angles.x = Math.min(Math.PI / 2, Math.max(-Math.PI / 2, this.angles.x));
-		mouse.dx = 0;
-		mouse.dy = 0;
-		if (player.path) {
-			this.angles.setFromQuaternion(player.model.quaternion);
-			this.angles.y += Math.PI;
-		}
-		camera.fov = 70;
-		camera.updateProjectionMatrix();
-		camera.position.copy(player.model.position)
-			.add(new THREE.Vector3(0, 1, 0));
-		camera.quaternion.setFromEuler(this.angles);
-		camera.updateProjectionMatrix();
-	}
-
-	updatePlayer(dt) {
-		if (player.path) return;
-		player.model.quaternion.setFromEuler(
-			new THREE.Euler(0, this.angles.y - Math.PI, 0)
-		);
-
-		const dx = dt * player.moveSpeed * (keyboard.right - keyboard.left);
-		const dz = dt * player.moveSpeed * (keyboard.up - keyboard.down);
-		const v = new THREE.Vector3(-dx, 0, dz)
-			.applyQuaternion(player.model.quaternion);
-		player.model.position.add(v);
-	}
-}
-
 
 
 const controls = {
@@ -327,7 +274,36 @@ const controls = {
 	activeZone: null,
 	update(dt) {
 		if (this.activeZone?.isFirstPerson) {
-			console.log('firsperson');
+			const turnSpeed = .01;
+			const euler = this.activeZone.euler;
+			euler.x -= turnSpeed * mouse.dy;
+			euler.y -= turnSpeed * mouse.dx;
+			euler.x = Math.min(Math.PI / 2, Math.max(-Math.PI / 2, euler.x));
+			mouse.dx = 0;
+			mouse.dy = 0;
+			if (player.path) {
+				euler.setFromQuaternion(player.model.quaternion);
+				euler.y += Math.PI;
+			}
+			camera.fov = 70;
+			camera.updateProjectionMatrix();
+			camera.position.copy(player.model.position)
+				.add(new THREE.Vector3(0, 1, 0));
+			camera.quaternion.setFromEuler(euler);
+			camera.updateProjectionMatrix();
+			camera.quaternion.setFromEuler(euler);
+
+			if (player.path) return;
+			player.model.quaternion.setFromEuler(
+				new THREE.Euler(0, euler.y - Math.PI, 0)
+			);
+
+			const dx = keyboard.right - keyboard.left;
+			const dz = keyboard.up - keyboard.down;
+			const v = new THREE.Vector3(-dx, 0, dz)
+				.setLength(dt * player.moveSpeed)
+				.applyQuaternion(player.model.quaternion);
+			player.model.position.add(v);
 		}
 		const pos = player.model.position;
 		if (this.activeZone?.bounds.containsPoint(pos))
@@ -338,6 +314,7 @@ const controls = {
 
 		if (zone.isFirstPerson) {
 			camera.fov = 70;
+			zone.euler = new THREE.Euler(0, 0, 0, 'YXZ');
 			camera.updateProjectionMatrix();
 		}
 		else {
@@ -369,14 +346,16 @@ animate();
 
 
 
-// for (const object of scene.children) {
-// 	scene.remove(object);
-// }
-// import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-// const l0 = new DRACOLoader();
-// l0.setDecoderPath('https://unpkg.com/three@0.164.1/examples/jsm/libs/draco/')
-// scene.add(await new Promise(res => new GLTFLoader().setDRACOLoader(l0).load('LittlestTokyo.glb', gltf => {
-// 	gltf.scene.scale.set(.05, .05, .05)
-// 	res(gltf.scene);
-// })))
-// scene.add(new THREE.HemisphereLight(0xffffff));
+for (const object of scene.children) {
+	scene.remove(object);
+}
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+const l0 = new DRACOLoader();
+l0.setDecoderPath('https://unpkg.com/three@0.164.1/examples/jsm/libs/draco/')
+scene.add(await new Promise(res => new GLTFLoader().setDRACOLoader(l0).load('LittlestTokyo.glb', gltf => {
+	gltf.scene.scale.set(.05, .05, .05)
+	res(gltf.scene);
+})))
+scene.add(new THREE.HemisphereLight(0xffffff));
+camera.position.set(21.5, 1, 10.1);
+camera.quaternion.set(-0.07064461439650073, 0.5583248786086188, 0.04779616577236755, 0.8252261477443024)

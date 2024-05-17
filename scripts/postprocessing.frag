@@ -28,16 +28,74 @@ vec3 closestColor(vec3 x) {
     return color;
 }
 
+// void main() {
+//     vec3 color = texture2D(tDiffuse, UV).xyz;
+//     // color = srgbToLinear(vec3(UV.x));
+//     gl_FragColor = vec4(color,1);
+//     ivec2 coord = ivec2(floor(gl_FragCoord.xy)) % textureSize(threshold, 0);
+//     float threshold = texelFetch(threshold, coord, 0).x;
+//     // color = (palette(color + 0.1 * threshold));
+//     color = linearToSrgb(color);
+//     color = closestColor(color + .2*(threshold - 0.5));
+//     color = srgbToLinear(color);
+//     // color = coord.x % 2 == 0 ^^ coord.y % 2 ==0 ? vec3(1) : vec3(0);
+//     gl_FragColor = vec4(color, 1);
+// }
+
+#define TE(x) texelFetch(tDiffuse, x, 0).xyz
+#define LU(x) dot(x,vec3(.2126,.7152,.0722))
+#define N 3
+vec3 f() {
+    ivec2 c = ivec2(floor(gl_FragCoord));
+    vec3 c1 = vec3(0);
+    vec3 c2 = vec3(0);
+    vec3 c3 = vec3(0);
+    vec3 c4 = vec3(0);
+    for (int x = 0; x < N; x++) {
+        for (int y = 0; y < N; y++) {
+            c1 += TE(c+ivec2(x,y));
+            c2 += TE(c+ivec2(-x,y));
+            c3 += TE(c+ivec2(-x,-y));
+            c4 += TE(c+ivec2(x,-y));
+        }
+    }
+    c1 /= float(N * N);
+    c2 /= float(N * N);
+    c3 /= float(N * N);
+    c4 /= float(N * N);
+
+    float v1 = 0.;
+    float v2 = 0.;
+    float v3 = 0.;
+    float v4 = 0.;
+    for (int x = 0; x < N; x++) {
+        for (int y = 0; y < N; y++) {
+            v1 += pow(LU(c1)-LU(TE(c+ivec2(x,y))),2.);
+            v2 += pow(LU(c2)-LU(TE(c+ivec2(-x,y))),2.);
+            v3 += pow(LU(c3)-LU(TE(c+ivec2(-x,-y))),2.);
+            v4 += pow(LU(c4)-LU(TE(c+ivec2(x,-y))),2.);
+        }
+    }
+    vec3 co = vec3(0);
+    float minv = min(min(min(v1,v2),v3),v4);
+    if (minv == v1) co = c1;
+    if (minv == v2) co = c2;
+    if (minv == v3) co = c3;
+    if (minv == v4) co = c4;
+
+    return co;
+}
+
 void main() {
     vec3 color = texture2D(tDiffuse, UV).xyz;
     // color = srgbToLinear(vec3(UV.x));
-
-    ivec2 coord = ivec2(mod(gl_FragCoord.xy, vec2(textureSize(threshold, 0))));
+    gl_FragColor = vec4(color,1);
+    ivec2 coord = ivec2(floor(gl_FragCoord.xy)) % textureSize(threshold, 0);
     float threshold = texelFetch(threshold, coord, 0).x;
     // color = (palette(color + 0.1 * threshold));
     color = linearToSrgb(color);
     color = closestColor(color + .2*(threshold - 0.5));
     color = srgbToLinear(color);
     // color = coord.x % 2 == 0 ^^ coord.y % 2 ==0 ? vec3(1) : vec3(0);
-    gl_FragColor = vec4(color, 1);
+    gl_FragColor = vec4(f(), 1);
 }
