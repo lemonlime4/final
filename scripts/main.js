@@ -5,19 +5,25 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
 
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera();
 
 const renderer = new THREE.WebGLRenderer({
     canvas: document.querySelector('canvas'),
 });
 document.body.appendChild(renderer.domElement);
 
+
+
+// post processing
+
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const shader = new ShaderPass({
+const postShader = new ShaderPass({
     name: 'Post processing shader',
     uniforms: {
         tDiffuse: { value: null },
@@ -26,8 +32,12 @@ const shader = new ShaderPass({
     vertexShader: `varying vec2 UV;void main(){UV=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1);}`,
     fragmentShader: await (await fetch('./scripts/postprocessing.frag')).text()
 });
-composer.addPass(shader);
+composer.addPass(postShader);
 composer.addPass(new OutputPass());
+
+
+
+// handling window resize
 
 {
     function onResize() {
@@ -45,7 +55,9 @@ composer.addPass(new OutputPass());
 
 
 
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+// add map
+
 const map = await new Promise(resolve => new GLTFLoader().load(
     '../assets/scene.glb',
     gltf => {
@@ -74,6 +86,7 @@ scene.add(map);
 
 
 
+// game loop
 
 requestAnimationFrame(function tick() {
     composer.render();
@@ -91,7 +104,7 @@ requestAnimationFrame(function tick() {
 
 
 
-
+// stats
 
 import Stats from 'three/addons/libs/stats.module.js';
 {
