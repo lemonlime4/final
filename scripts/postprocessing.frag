@@ -90,12 +90,14 @@ void main() {
     vec3 color = texture2D(tDiffuse, UV).xyz;
     // color = srgbToLinear(vec3(UV.x));
     gl_FragColor = vec4(color,1);
+
+return;
+
     ivec2 coord = ivec2(floor(gl_FragCoord.xy)) % textureSize(threshold, 0);
     float threshold = texelFetch(threshold, coord, 0).x;
-    // color = (palette(color + 0.1 * threshold));
     color = linearToSrgb(color);
     color = closestColor(color + .2*(threshold - 0.5));
     color = srgbToLinear(color);
     // color = coord.x % 2 == 0 ^^ coord.y % 2 ==0 ? vec3(1) : vec3(0);
-    gl_FragColor = vec4(f(), 1);
+    gl_FragColor = vec4(color, 1);
 }
