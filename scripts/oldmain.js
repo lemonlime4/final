@@ -56,7 +56,7 @@ camera.updateProjectionMatrix();
 
 
 const map = await new Promise(resolve => new GLTFLoader().load(
-	'../assets/scene.glb',
+	'../assets/models/scene.glb',
 	gltf => {
 		for (const mesh of gltf.scene.children) {
 			mesh.material = new THREE.MeshStandardMaterial({
@@ -81,7 +81,7 @@ scene.add(map);
 }
 
 const playerGLTF = await new Promise(resolve =>
-	new GLTFLoader().load('../player.glb', resolve));
+	new GLTFLoader().load('../assets/models/player.glb', resolve));
 playerGLTF.scene.children[0].children[0].material.metalness = 0;
 scene.add(playerGLTF.scene);
 const mixer = new THREE.AnimationMixer(playerGLTF.scene);
