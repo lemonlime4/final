@@ -1,8 +1,7 @@
 export class State {
-    enter() { throw new Error('unimplemented interface method'); }
-    leave() { }
-    update() { throw new Error('interface method called'); }
-    handleClick() { throw new Error('interface method called'); }
+    exit() { throw new Error('unimplemented interface method'); }
+    update() { throw new Error('unimplemented interface method'); }
+    handleClick() { throw new Error('unimplemented interface method'); }
     handleMousemove() { }
     handleKeydown() { }
     handleKeyup() { }

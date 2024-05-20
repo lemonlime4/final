@@ -3,7 +3,15 @@ export const options = {
     pixelRatio: .5,
     walkSpeed: 1,
     turnSpeed: 3,
-    fps: {
-        sensitivity: .01,
-    }
+    firstPersonSensitivity: .01,
+    keyDirectionMapping: new Map([
+        ['KeyW', 'up'],
+        ['ArrowUp', 'up'],
+        ['KeyA', 'left'],
+        ['ArrowLeft', 'left'],
+        ['KeyS', 'down'],
+        ['ArrowDown', 'down'],
+        ['KeyD', 'right'],
+        ['ArrowRight', 'right'],
+    ]),
 }

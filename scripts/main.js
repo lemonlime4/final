@@ -24,11 +24,14 @@ document.body.appendChild(renderer.domElement);
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
+const textureLoader = new THREE.TextureLoader()
+    .setPath('../assets/textures/');
 const postShader = new ShaderPass({
     name: 'Post processing shader',
     uniforms: {
         tDiffuse: { value: null },
-        threshold: { value: new THREE.TextureLoader().load('../assets/bluenoise.png') },
+        threshold: { value: textureLoader.load('bluenoise.png') },
+        resolution: { value: new THREE.Vector2() },
     },
     vertexShader: `varying vec2 UV;void main(){UV=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1);}`,
     fragmentShader: await (await fetch('./scripts/postprocessing.frag')).text()
@@ -38,16 +41,35 @@ composer.addPass(new OutputPass());
 
 
 
-// handling window resize
 
+
+// mouse inputs
+const mouse = new THREE.Vector2();
+window.addEventListener('mousemove', event => {
+    mouse.set(event.clientX, event.clientY);
+});
+
+
+
+
+
+
+// handling window resize
+// resize renderer, set camera aspect ratio, clamp mouse
 {
     function onResize() {
         renderer.setPixelRatio(options.pixelRatio);
         composer.setPixelRatio(options.pixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight, true);
         composer.setSize(window.innerWidth, window.innerHeight);
+        renderer.getSize(postShader.uniforms.resolution.value);
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
+
+        mouse.clamp(
+            new THREE.Vector2(0, 0),
+            new THREE.Vector2(window.innerWidth, window.innerHeight)
+        );
     }
     onResize();
     window.addEventListener('resize', onResize);
@@ -57,16 +79,15 @@ composer.addPass(new OutputPass());
 
 
 
-// gltf loader
 
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-const loader = new GLTFLoader().setPath('../assets/models/');
+const gltfLoader = new GLTFLoader().setPath('../assets/models/');
 
 
 // add map
 
-const map = await new Promise(resolve => loader.load(
+const map = await new Promise(resolve => gltfLoader.load(
     'scene.glb',
     gltf => {
         for (const mesh of gltf.scene.children) {
@@ -101,7 +122,7 @@ scene.add(map);
 const player = {
     path: null,
     turn: null,
-    ...await new Promise(resolve => loader.load(
+    ...await new Promise(resolve => gltfLoader.load(
         'player.glb',
         gltf => {
             const model = gltf.scene;
@@ -188,25 +209,68 @@ const player = {
 };
 
 
+// import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+// const c = new OrbitControls(camera, renderer.domElement);
 
 
-// ad hoc code
-window.p = player;
-camera.position.set(10, 5, 5);
-camera.lookAt(new THREE.Vector3(0, 0, 0));
-window.addEventListener('click', e => {
-    const raycaster = new THREE.Raycaster();
-    const mousePos = new THREE.Vector2(
-        -1 + 2 * e.clientX / window.innerWidth,
-        +1 - 2 * e.clientY / window.innerHeight
+const raycaster = new THREE.Raycaster();
+const intersectables = [map];
+window.addEventListener('click', event => {
+    const screenspaceMouse = new THREE.Vector2(
+        -1 + 2 * mouse.x / window.innerWidth,
+        +1 - 2 * mouse.y / window.innerHeight
     );
-    raycaster.setFromCamera(mousePos, camera);
-    const intersects = raycaster.intersectObject(map);
-    console.log(intersects);
+    raycaster.setFromCamera(screenspaceMouse, camera);
+    const intersects = raycaster.intersectObjects(intersectables);
     if (intersects.length === 0) return;
     const point = intersects[0].point;
     player.moveTo(point);
-})
+});
+
+
+
+
+
+import { fixedCameraZones } from './scene.js';
+scene.add(new THREE.AmbientLight(0x202020))
+const lights = [
+    new THREE.RectAreaLight()
+];
+import { RectAreaLightHelper } from 'three/addons/helpers/RectAreaLightHelper.js';
+for (const light of lights) scene.add(new RectAreaLightHelper(light))
+
+const controls = {
+    activeZone: null,
+    zones: [
+        ...fixedCameraZones,
+        {
+            isFirstPerson: true,
+            bounds: new THREE.Box3(
+                new THREE.Vector3(2, -1, 2),
+                new THREE.Vector3(6, -1, 5)
+            ),
+        }
+    ],
+    update() {
+        if (this.activeZone?.isFirstPerson) {
+        }
+        const playerPos = player.model.position;
+        if (this.activeZone?.bounds.containsPoint(playerPos))
+            return;
+        const zone = this.zones.find(zone => zone.bounds.containsPoint(playerPos));
+        if (!zone) return;
+        camera.position.copy(zone.camera.from);
+        camera.lookAt(zone.camera.to);
+        this.activeZone = zone;
+    }
+}
+for (const zone of controls.zones) {
+    scene.add(new THREE.Box3Helper(zone.bounds));
+}
+
+
+
+
 
 
 
@@ -216,6 +280,7 @@ requestAnimationFrame(function tick() {
     const dt = options.dt;
 
     player.update(dt);
+    controls.update();
 
     composer.render();
     requestAnimationFrame(tick);
@@ -243,3 +308,22 @@ import Stats from 'three/addons/libs/stats.module.js';
         requestAnimationFrame(updateStats);
     })()
 }
+
+const axes = new THREE.AxesHelper();
+axes.position.y = 1;
+scene.add(axes);
+
+
+// for (const object of scene.children) {
+// 	scene.remove(object);
+// }
+// import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+// const l0 = new DRACOLoader();
+// l0.setDecoderPath('https://unpkg.com/three@0.164.1/examples/jsm/libs/draco/')
+// scene.add(await new Promise(res => new GLTFLoader().setDRACOLoader(l0).load('LittlestTokyo.glb', gltf => {
+// 	gltf.scene.scale.set(.05, .05, .05)
+// 	res(gltf.scene);
+// })))
+// scene.add(new THREE.HemisphereLight(0xffffff));
+// camera.position.set(21.5, 1, 10.1);
+// camera.quaternion.set(-0.07064461439650073, 0.5583248786086188, 0.04779616577236755, 0.8252261477443024)
