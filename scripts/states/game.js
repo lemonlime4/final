@@ -1,5 +1,5 @@
 import { State } from "./interface.js";
-import { fixedCameraZones, fpsZone } from "../scene.js";
+import { fixedCameraZones, fpsZone, walkAreas } from "../scene.js";
 
 class GameState extends State {
     constructor({ player, camera, mouse }) {
@@ -11,6 +11,7 @@ class GameState extends State {
         this.zones = fixedCameraZones;
         this.fpsZone = fpsZone;
         this.activeZone = null;
+        this.walkAreas = walkAreas;
         this.fpsEuler = new Euler();
         this.keyboard = {
             up: false,
@@ -18,13 +19,13 @@ class GameState extends State {
             left: false,
             up: false,
         };
-
     }
 
     exit() { }
 
     update(dt) {
-        this.controller.update();
+        this.controller.update(dt);
+        this.player.update(dt);
     }
 
     handleClick(e) {

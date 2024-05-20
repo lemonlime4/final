@@ -1,6 +1,8 @@
 uniform sampler2D tDiffuse;
 uniform sampler2D threshold;
 
+uniform vec2 resolution;
+
 varying vec2 UV;
 
 

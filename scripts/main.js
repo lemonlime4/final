@@ -10,6 +10,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera();
+camera.fov = 45;
 camera.near = 0.01;
 camera.far = 1000;
 
@@ -209,8 +210,8 @@ const player = {
 };
 
 
-// import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-// const c = new OrbitControls(camera, renderer.domElement);
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+const c = new OrbitControls(camera, renderer.domElement);
 
 
 const raycaster = new THREE.Raycaster();
@@ -264,13 +265,48 @@ const controls = {
         this.activeZone = zone;
     }
 }
-for (const zone of controls.zones) {
+for (const zone of controls.zones)
     scene.add(new THREE.Box3Helper(zone.bounds));
+
+const walkAreas = [
+    {
+        box: new THREE.Box3(
+            new THREE.Vector3(2.3, -.1, .3),
+            new THREE.Vector3(4.5, 2.5, 1)
+        ),
+    },
+    {
+        box: new THREE.Box3(
+            new THREE.Vector3(4.3, -.1, 5.5),
+            new THREE.Vector3(6.3, 2.5, 6.7)
+        ),
+        meeting: 0,
+    },
+    {
+        box: new THREE.Box3(
+            new THREE.Vector3(10, -.1, 5.5),
+            new THREE.Vector3(12, 2.5, 8)
+        ),
+    },
+    {
+        box: new THREE.Box3(
+            new THREE.Vector3(10.1, -.1, 12.1),
+            new THREE.Vector3(12, 2.5, 14.6)
+        ),
+    },
+    {
+        box: new THREE.Box3(
+            new THREE.Vector3(.6, -.1, 13.2),
+            new THREE.Vector3(2.5, 2.5, 14.8)
+        )
+    }
+];
+for (const a of walkAreas) {
+    scene.add(new THREE.Box3Helper(a.box, 0xff0000));
+    // const b = new THREE.AxesHelper();
+    // a.scale.set(0.5,0.5,0.5);
+
 }
-
-
-
-
 
 
 
