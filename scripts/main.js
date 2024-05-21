@@ -9,10 +9,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera();
-camera.fov = 45;
-camera.near = 0.01;
-camera.far = 1000;
+const camera = new THREE.PerspectiveCamera(options.fov, 1, 0.1, 1000);
 
 const renderer = new THREE.WebGLRenderer({
     canvas: document.querySelector('canvas'),
@@ -44,19 +41,43 @@ composer.addPass(new OutputPass());
 
 
 
-// mouse inputs
-const mouse = new THREE.Vector2();
+// mouse.position inputs
+const mouse = {
+    position: new THREE.Vector2(),
+    movement: new THREE.Vector2(),
+    update() {
+        this.movement.set(0, 0);
+    }
+};
+
 window.addEventListener('mousemove', event => {
-    mouse.set(event.clientX, event.clientY);
+    mouse.position.set(event.clientX, event.clientY);
+    mouse.movement.set(event.movementX, event.movementY)
 });
 
+// keyboard
+const keyboard = {
+    up: false,
+    left: false,
+    down: false,
+    right: false,
+};
+window.addEventListener('keydown', event => {
+    const dir = options.keyDirectionMapping.get(event.code);
+    if (dir) keyboard[dir] = true;
+    console.log(keyboard);
+})
+window.addEventListener('keyup', event => {
+    const dir = options.keyDirectionMapping.get(event.code);
+    if (dir) keyboard[dir] = false;
+})
 
 
 
 
 
 // handling window resize
-// resize renderer, set camera aspect ratio, clamp mouse
+// resize renderer, set camera aspect ratio, clamp mouse.position
 {
     function onResize() {
         renderer.setPixelRatio(options.pixelRatio);
@@ -67,7 +88,7 @@ window.addEventListener('mousemove', event => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
 
-        mouse.clamp(
+        mouse.position.clamp(
             new THREE.Vector2(0, 0),
             new THREE.Vector2(window.innerWidth, window.innerHeight)
         );
@@ -210,13 +231,13 @@ const player = {
 };
 
 
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-const c = new OrbitControls(camera, renderer.domElement);
+// import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+// const c = new OrbitControls(camera, renderer.domElement);
 
 
 
 
-import { fixedCameraZones, walkAreas } from './scene.js';
+import { fixedCameraZones, firstPersonBounds, walkAreas } from './scene.js';
 scene.add(new THREE.AmbientLight(0x202020))
 for (const a of walkAreas) {
     scene.add(new THREE.Box3Helper(a.box, 0xff0000));
@@ -227,9 +248,8 @@ for (const a of walkAreas) {
 const lights = [
     new THREE.RectAreaLight()
 ];
-import { RectAreaLightHelper } from 'three/addons/helpers/RectAreaLightHelper.js';
-for (const light of lights) scene.add(new RectAreaLightHelper(light))
-
+// import { RectAreaLightHelper } from 'three/addons/helpers/RectAreaLightHelper.js';
+// for (const light of lights) scene.add(new RectAreaLightHelper(light))
 
 
 
@@ -239,27 +259,54 @@ for (const light of lights) scene.add(new RectAreaLightHelper(light))
 
 
 const controls = {
+    firstPersonEuler: new THREE.Euler(0, 0, 0, 'YXZ'),
     activeZone: null,
     zones: [
         ...fixedCameraZones,
         {
             isFirstPerson: true,
-            bounds: new THREE.Box3(
-                new THREE.Vector3(2, -1, 2),
-                new THREE.Vector3(6, -1, 5)
-            ),
+            bounds: firstPersonBounds
         }
     ],
-    update() {
+    update(dt) {
         if (this.activeZone?.isFirstPerson) {
+            player.model.quaternion.setFromEuler(new THREE.Euler(0, this.firstPersonEuler.y - Math.PI, 0));
+            player.model.position.add(new THREE.Vector3(
+                keyboard.left - keyboard.right,
+                0,
+                keyboard.up - keyboard.down
+            ).normalize().multiplyScalar(dt * options.walkSpeed)
+                .applyQuaternion(player.model.quaternion));
+            this.firstPersonEuler.y -= mouse.movement.x * options.firstPersonSensitivity;
+            this.firstPersonEuler.x -= mouse.movement.y * options.firstPersonSensitivity;
+            this.firstPersonEuler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.firstPersonEuler.x));
+            camera.position.copy(player.model.position)
+                .add(new THREE.Vector3(0, 1, 0));
+            camera.quaternion.setFromEuler(this.firstPersonEuler);
         }
         const playerPos = player.model.position;
         if (this.activeZone?.bounds.containsPoint(playerPos))
             return;
         const zone = this.zones.find(zone => zone.bounds.containsPoint(playerPos));
         if (!zone) return;
-        camera.position.copy(zone.camera.from);
-        camera.lookAt(zone.camera.to);
+        if (this.activeZone?.isFirstPerson) {
+            camera.fov = options.fov;
+            camera.updateProjectionMatrix();
+            player.model.visible = true;
+        }
+        if (zone.isFirstPerson) {
+            camera.fov = options.firstPersonFov;
+            camera.updateProjectionMatrix();
+            camera.position.y = 1.7;
+            player.model.visible = false;
+            this.firstPersonEuler
+                .setFromQuaternion(player.model.quaternion);
+            // this.firstPersonEuler.y += Math.PI;
+        }
+        else {
+            camera.position.copy(zone.camera.from);
+            camera.lookAt(zone.camera.to);
+        }
         this.activeZone = zone;
     }
 }
@@ -273,8 +320,8 @@ const raycaster = new THREE.Raycaster();
 const intersectables = [map];
 window.addEventListener('click', event => {
     const screenspaceMouse = new THREE.Vector2(
-        -1 + 2 * mouse.x / window.innerWidth,
-        +1 - 2 * mouse.y / window.innerHeight
+        -1 + 2 * mouse.position.x / window.innerWidth,
+        +1 - 2 * mouse.position.y / window.innerHeight
     );
     raycaster.setFromCamera(screenspaceMouse, camera);
     const ray = raycaster.ray;
@@ -306,7 +353,8 @@ requestAnimationFrame(function tick() {
     const dt = options.dt;
 
     player.update(dt);
-    controls.update();
+    controls.update(dt);
+    mouse.update(dt);
 
     composer.render();
     requestAnimationFrame(tick);

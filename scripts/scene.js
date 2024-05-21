@@ -23,7 +23,7 @@ export const fixedCameraZones = [
     makeFixedCameraZone(
         "Boiler",
         10.4, 6, 18.7, 14.2,
-        7.5, 1.5, 10, 11, 1, 10
+        7.2, 1.5, 10, 11, 1, 10
     ),
     makeFixedCameraZone(
         "Bottom",
@@ -33,25 +33,35 @@ export const fixedCameraZones = [
     makeFixedCameraZone(
         "Storage",
         0.2, 6.5, 7.2, 13.7,
-        -3, 1.5, 10, 5, 1, 11
-    ),
-    makeFixedCameraZone(
-        "Initial",
-        - .5, -.5, .5, .5,
-        0, 15, 0, 0, 0, 0
+        -3, 2, 9.5, 5, 1, 10.5
     ),
 ];
 
 
+export const firstPersonBounds = new THREE.Box3(
+    new THREE.Vector3(-1.8, 0, -1.3),
+    new THREE.Vector3(3.1, 0, 1.4)
+);
+
+
 
 export const walkAreas = [
-    {
+    { // to initial
         box: new THREE.Box3(
             new THREE.Vector3(2.3, -.1, .3),
             new THREE.Vector3(4.5, 2.5, 1)
         ),
         target: new Map([
             ["Top", new THREE.Vector3(2, 0, 1)]
+        ]),
+    },
+    { // to storage
+        box: new THREE.Box3(
+            new THREE.Vector3(4.3, -.1, 5.5),
+            new THREE.Vector3(6.3, 2.5, 6)
+        ),
+        target: new Map([
+            ["Top", new THREE.Vector3(5.3, 0, 7.3)]
         ]),
     },
     {
@@ -70,8 +80,8 @@ export const walkAreas = [
             new THREE.Vector3(12, 2.5, 14.6)
         ),
         target: new Map([
-            ["Boiler", new THREE.Vector3()],
-            ["Bottom", new THREE.Vector3()],
+            ["Boiler", new THREE.Vector3(11, 0, 14.5)],
+            ["Bottom", new THREE.Vector3(11, 0, 12.4)],
         ]),
     },
     {
@@ -80,18 +90,8 @@ export const walkAreas = [
             new THREE.Vector3(2.5, 2.5, 14.8)
         ),
         target: new Map([
-            ["Bottom", new THREE.Vector3()],
-            ["Storage", new THREE.Vector3()],
+            ["Bottom", new THREE.Vector3(1.7, 0, 13.3)],
+            ["Storage", new THREE.Vector3(1.7, 0, 14.5)],
         ]),
     },
-    {
-        box: new THREE.Box3(
-            new THREE.Vector3(4.3, -.1, 5.5),
-            new THREE.Vector3(6.3, 2.5, 6.7)
-        ),
-        target: new Map([
-            ["Storage", new THREE.Vector3()],
-            ["Top", new THREE.Vector3()]
-        ]),
-    }
 ];
