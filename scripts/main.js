@@ -214,31 +214,29 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const c = new OrbitControls(camera, renderer.domElement);
 
 
-const raycaster = new THREE.Raycaster();
-const intersectables = [map];
-window.addEventListener('click', event => {
-    const screenspaceMouse = new THREE.Vector2(
-        -1 + 2 * mouse.x / window.innerWidth,
-        +1 - 2 * mouse.y / window.innerHeight
-    );
-    raycaster.setFromCamera(screenspaceMouse, camera);
-    const intersects = raycaster.intersectObjects(intersectables);
-    if (intersects.length === 0) return;
-    const point = intersects[0].point;
-    player.moveTo(point);
-});
 
 
-
-
-
-import { fixedCameraZones } from './scene.js';
+import { fixedCameraZones, walkAreas } from './scene.js';
 scene.add(new THREE.AmbientLight(0x202020))
+for (const a of walkAreas) {
+    scene.add(new THREE.Box3Helper(a.box, 0xff0000));
+    // const b = new THREE.AxesHelper();
+    // a.scale.set(0.5,0.5,0.5);
+
+}
 const lights = [
     new THREE.RectAreaLight()
 ];
 import { RectAreaLightHelper } from 'three/addons/helpers/RectAreaLightHelper.js';
 for (const light of lights) scene.add(new RectAreaLightHelper(light))
+
+
+
+
+
+
+
+
 
 const controls = {
     activeZone: null,
@@ -268,45 +266,37 @@ const controls = {
 for (const zone of controls.zones)
     scene.add(new THREE.Box3Helper(zone.bounds));
 
-const walkAreas = [
-    {
-        box: new THREE.Box3(
-            new THREE.Vector3(2.3, -.1, .3),
-            new THREE.Vector3(4.5, 2.5, 1)
-        ),
-    },
-    {
-        box: new THREE.Box3(
-            new THREE.Vector3(4.3, -.1, 5.5),
-            new THREE.Vector3(6.3, 2.5, 6.7)
-        ),
-        meeting: 0,
-    },
-    {
-        box: new THREE.Box3(
-            new THREE.Vector3(10, -.1, 5.5),
-            new THREE.Vector3(12, 2.5, 8)
-        ),
-    },
-    {
-        box: new THREE.Box3(
-            new THREE.Vector3(10.1, -.1, 12.1),
-            new THREE.Vector3(12, 2.5, 14.6)
-        ),
-    },
-    {
-        box: new THREE.Box3(
-            new THREE.Vector3(.6, -.1, 13.2),
-            new THREE.Vector3(2.5, 2.5, 14.8)
-        )
-    }
-];
-for (const a of walkAreas) {
-    scene.add(new THREE.Box3Helper(a.box, 0xff0000));
-    // const b = new THREE.AxesHelper();
-    // a.scale.set(0.5,0.5,0.5);
 
-}
+
+
+const raycaster = new THREE.Raycaster();
+const intersectables = [map];
+window.addEventListener('click', event => {
+    const screenspaceMouse = new THREE.Vector2(
+        -1 + 2 * mouse.x / window.innerWidth,
+        +1 - 2 * mouse.y / window.innerHeight
+    );
+    raycaster.setFromCamera(screenspaceMouse, camera);
+    const ray = raycaster.ray;
+    const sceneIntersects = raycaster.intersectObjects(intersectables);
+    if (sceneIntersects.length > 0) {
+        player.moveTo(sceneIntersects[0].point);
+    }
+    const areaIntersect = walkAreas
+        .map(area => {
+            const pos = ray.intersectBox(area.box, new THREE.Vector3());
+            if (pos === null) return [Infinity, null];
+            return { distance: pos.distanceTo(ray.origin), area };
+        })
+        .reduce((closest, current) => {
+            if (current.distance < closest.distance) return current;
+            return closest;
+        }, { distance: Infinity, area: null });
+
+    if (areaIntersect.area === null) return;
+    player.moveTo(areaIntersect.area.target
+        .get(controls.activeZone.name));
+});
 
 
 
