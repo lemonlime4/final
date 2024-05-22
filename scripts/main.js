@@ -9,7 +9,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(options.fov, 1, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(options.fov, 1, 0.01, 100);
 
 const renderer = new THREE.WebGLRenderer({
     canvas: document.querySelector('canvas'),
@@ -65,7 +65,6 @@ const keyboard = {
 window.addEventListener('keydown', event => {
     const dir = options.keyDirectionMapping.get(event.code);
     if (dir) keyboard[dir] = true;
-    console.log(keyboard);
 })
 window.addEventListener('keyup', event => {
     const dir = options.keyDirectionMapping.get(event.code);
@@ -169,13 +168,22 @@ const player = {
         }
     )),
 
+    walk() {
+        this.walkAction.enabled = true;
+        this.walkAction.setEffectiveWeight(1);
+        this.idleAction.crossFadeTo(this.walkAction, .5 / options.walkSpeed, true)
+        this.walkAction.setEffectiveTimeScale(options.walkSpeed);
+    },
+
+    stopWalking() {
+        this.idleAction.enabled = true;
+        this.idleAction.setEffectiveWeight(1);
+        this.walkAction.crossFadeTo(this.idleAction, .3 / options.walkSpeed, true);
+    },
+
     moveTo(point) {
-        // start walk animation
-        if (!this.path) {
-            this.walkAction.enabled = true;
-            this.walkAction.setEffectiveWeight(1);
-            this.idleAction.crossFadeTo(this.walkAction, .5, true);
-        }
+        if (!this.path) this.walk();
+
         // set movement path and turning
         const dir = point.clone().sub(this.model.position);
         this.path = {
@@ -220,17 +228,14 @@ const player = {
             );
             if (this.path.completion > 1) {
                 this.path = null;
-
-                // fade animation to idle
-                this.idleAction.enabled = true;
-                this.idleAction.setEffectiveWeight(1);
-                this.walkAction.crossFadeTo(this.idleAction, .3, true);
+                this.stopWalking();
             }
         }
     },
 };
 
 
+window.p = player;
 // import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 // const c = new OrbitControls(camera, renderer.domElement);
 
@@ -281,7 +286,7 @@ const controls = {
             this.firstPersonEuler.x -= mouse.movement.y * options.firstPersonSensitivity;
             this.firstPersonEuler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.firstPersonEuler.x));
             camera.position.copy(player.model.position)
-                .add(new THREE.Vector3(0, 1, 0));
+                .add(new THREE.Vector3(0, options.firstPersonHeight, 0));
             camera.quaternion.setFromEuler(this.firstPersonEuler);
         }
         const playerPos = player.model.position;
@@ -293,12 +298,13 @@ const controls = {
             camera.fov = options.fov;
             camera.updateProjectionMatrix();
             player.model.visible = true;
+            player.stopWalking();
         }
         if (zone.isFirstPerson) {
             camera.fov = options.firstPersonFov;
             camera.updateProjectionMatrix();
-            camera.position.y = 1.7;
             player.model.visible = false;
+            player.walk();
             this.firstPersonEuler
                 .setFromQuaternion(player.model.quaternion);
             // this.firstPersonEuler.y += Math.PI;
@@ -345,12 +351,14 @@ window.addEventListener('click', event => {
         .get(controls.activeZone.name));
 });
 
-
+// scene.remove(player.model);
 
 // game loop
 
-requestAnimationFrame(function tick() {
-    const dt = options.dt;
+let lastTimestamp = 0;
+requestAnimationFrame(function tick(timestamp) {
+    const dt = Math.min(timestamp - lastTimestamp, options.maxDt) / 1000;
+    lastTimestamp = timestamp;
 
     player.update(dt);
     controls.update(dt);

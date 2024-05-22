@@ -1,10 +1,11 @@
 export const options = {
-    dt: 1 / 40,
+    maxDt: 1000 / 20,
     fov: 45,
     pixelRatio: .5,
-    walkSpeed: 1,
-    turnSpeed: 3,
+    walkSpeed: 1.5,
+    turnSpeed: 4,
     firstPersonFov: 80,
+    firstPersonHeight: 1.6,
     firstPersonSensitivity: .005,
     keyDirectionMapping: new Map([
         ['KeyW', 'up'],
