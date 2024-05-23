@@ -39,8 +39,8 @@ export const fixedCameraZones = [
 
 
 export const firstPersonBounds = new THREE.Box3(
-    new THREE.Vector3(-1.8, 0, -1.3),
-    new THREE.Vector3(3.1, 0, 1.4)
+    new THREE.Vector3(-1.8, -.5, -1.3),
+    new THREE.Vector3(3.1, .5, 1.4)
 );
 
 
