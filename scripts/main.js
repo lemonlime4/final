@@ -67,6 +67,10 @@ window.addEventListener('keyup', event => {
     context.handleKeyup(event);
 })
 
+// window.addEventListener('blur', event => {
+// context.handleBlur(event);
+// })
+
 
 
 
@@ -153,7 +157,8 @@ requestAnimationFrame(function tick(timestamp) {
     const dt = Math.min(timestamp - lastTimestamp, options.maxDt) / 1000;
     lastTimestamp = timestamp;
 
-    player.update(dt);
+    // camera.position.x += .1;
+    context.update(dt);
     composer.render();
     requestAnimationFrame(tick);
 });
@@ -164,10 +169,10 @@ requestAnimationFrame(function tick(timestamp) {
 
 
 
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-const oc = new OrbitControls(camera, renderer.domElement);
+// import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+// const oc = new OrbitControls(camera, renderer.domElement);
 
-camera.position.set(0, 20, 0);
+// camera.position.set(0, 10, 0);
 camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 // stats
