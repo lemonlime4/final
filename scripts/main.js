@@ -6,7 +6,6 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
-import './game.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(options.fov, 1, 0.01, 100);
@@ -47,26 +46,27 @@ const mouse = {
     movement: new THREE.Vector2(),
 };
 
+import { GameContext } from './contexts/game.js';
+const context = new GameContext({ camera, mouse });
+
 window.addEventListener('mousemove', event => {
     mouse.position.set(event.clientX, event.clientY);
-    mouse.movement.set(event.movementX, event.movementY)
+    mouse.movement.set(event.movementX, event.movementY);
+    context.handleMousemove(event);
 });
 
-// keyboard
-const keyboard = {
-    up: false,
-    left: false,
-    down: false,
-    right: false,
-};
+window.addEventListener('mousedown', event => {
+    context.handleMousedown(event);
+})
+
 window.addEventListener('keydown', event => {
-    const dir = options.keyDirectionMapping.get(event.code);
-    if (dir) keyboard[dir] = true;
+    context.handleKeydown(event);
 })
+
 window.addEventListener('keyup', event => {
-    const dir = options.keyDirectionMapping.get(event.code);
-    if (dir) keyboard[dir] = false;
+    context.handleKeyup(event);
 })
+
 
 
 
@@ -135,106 +135,18 @@ scene.add(map);
 
 // player
 
-const player = {
-    path: null,
-    turn: null,
-    ...await new Promise(resolve => gltfLoader.load(
-        'player.glb',
-        gltf => {
-            const model = gltf.scene;
-            const mixer = new THREE.AnimationMixer(model);
-            const walkAction = mixer.clipAction(
-                THREE.AnimationClip
-                    .findByName(gltf.animations, 'Walk')
-            );
-            const idleAction = mixer.clipAction(
-                THREE.AnimationClip
-                    .findByName(gltf.animations, 'Idle')
-            );
-
-            scene.add(model);
-            walkAction.setEffectiveWeight(0);
-            idleAction.setEffectiveWeight(1);
-            walkAction.play();
-            idleAction.play();
-            resolve({
-                model, mixer, walkAction, idleAction
-            });
-        }
-    )),
-
-    walk() {
-        this.walkAction.enabled = true;
-        this.walkAction.setEffectiveWeight(1);
-        this.idleAction.crossFadeTo(this.walkAction, .5 / options.walkSpeed, true)
-        this.walkAction.setEffectiveTimeScale(options.walkSpeed);
-    },
-
-    stopWalking() {
-        this.idleAction.enabled = true;
-        this.idleAction.setEffectiveWeight(1);
-        this.walkAction.crossFadeTo(this.idleAction, .3 / options.walkSpeed, true);
-    },
-
-    moveTo(point) {
-        if (!this.path) this.walk();
-
-        // set movement path and turning
-        const dir = point.clone().sub(this.model.position);
-        this.path = {
-            start: this.model.position.clone(),
-            end: point.clone(),
-            length: dir.length(),
-            completion: 0
-        };
-        this.turn = {
-            start: this.model.quaternion.clone(),
-            end: new THREE.Quaternion().setFromUnitVectors(
-                new THREE.Vector3(0, 0, 1),
-                dir.set(dir.x, 0, dir.z).normalize()
-            ),
-            completion: 0
-        };
-    },
-
-    update(dt) {
-        // for animation
-        this.mixer.update(dt);
-
-        // turn player
-        if (this.turn) {
-            this.turn.completion += options.turnSpeed * dt;
-            this.model.quaternion
-                .copy(this.turn.start)
-                .slerp(this.turn.end, this.turn.completion);
-            if (this.turn.completion > 1) {
-                this.turn = null;
-            }
-        }
-
-        // move player
-        if (this.path) {
-            this.path.completion += dt * options.walkSpeed / this.path.length;
-            this.model.position.copy(
-                this.path.start.clone().lerp(
-                    this.path.end,
-                    this.path.completion
-                )
-            );
-            if (this.path.completion > 1) {
-                this.path = null;
-                this.stopWalking();
-            }
-        }
-    },
-};
+import { player } from './player.js';
+scene.add(player.model);
 
 
-camera.position.set(0, 20, 0);
-camera.lookAt(new THREE.Vector3(0, 0, 0));
+
 
 
 scene.add(new THREE.AmbientLight(0x202020))
+
+
+
+
 
 let lastTimestamp = 0;
 requestAnimationFrame(function tick(timestamp) {
@@ -246,16 +158,17 @@ requestAnimationFrame(function tick(timestamp) {
     requestAnimationFrame(tick);
 });
 
+
+
+
+
+
+
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const oc = new OrbitControls(camera, renderer.domElement);
 
-
-
-
-
-
-
-
+camera.position.set(0, 20, 0);
+camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 // stats
 

@@ -6,8 +6,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 export const player = {
     path: null,
     turn: null,
-    ...await new Promise(resolve => gltfLoader.load(
-        'player.glb',
+    ...await new Promise(resolve => new GLTFLoader().load(
+        '../assets/models/player.glb',
         gltf => {
             const model = gltf.scene;
             const mixer = new THREE.AnimationMixer(model);
@@ -20,7 +20,6 @@ export const player = {
                     .findByName(gltf.animations, 'Idle')
             );
 
-            scene.add(model);
             walkAction.setEffectiveWeight(0);
             idleAction.setEffectiveWeight(1);
             walkAction.play();
