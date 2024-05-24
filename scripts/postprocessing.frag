@@ -5,6 +5,9 @@ uniform vec2 resolution;
 
 varying vec2 UV;
 
+const float PI = 3.1415926535897932384626433832795;
+const float INF = 3.4e38;
+
 
 vec3 linearToSrgb(vec3 x) {
     return pow(x, vec3(1./2.2));
@@ -29,11 +32,11 @@ float colorDistance(vec3 a, vec3 b) {
     return distance(a, b);
 }
 vec3 dither(vec3 color) {
-    ivec2 coord = ivec2(floor(gl_FragCoord.xy)) % textureSize(threshold, 0);
+    ivec2 coord = ivec2(floor(gl_FragCoord)) % textureSize(threshold, 0);
     float threshold = texelFetch(threshold, coord, 0).x;
     color = linearToSrgb(color);
 
-    float leastDist = pow(2., 127.);
+    float leastDist = INF;
     MixingPlan bestPlan;
     for (int i = 0; i < palette.length(); i++) {
         for (int j = 0; j < i; j++) {
@@ -57,5 +60,6 @@ vec3 dither(vec3 color) {
 
 void main() {
     vec3 color = texelFetch(tDiffuse, ivec2(floor(gl_FragCoord)), 0).xyz;
-    gl_FragColor = vec4((color), 1);
+    // color = dither(color);
+    gl_FragColor = vec4(color, 1);
 }

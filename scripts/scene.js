@@ -1,3 +1,6 @@
+// A bunch of hardcoded data about the scene
+// that couldn't be packed into the gltf.
+
 import * as THREE from 'three';
 
 function makeFixedCameraZone(name, ax, az, bx, bz, fx, fy, fz, tx, ty, tz) {
@@ -95,3 +98,80 @@ export const walkAreas = [
         ]),
     },
 ];
+
+
+function makePointLight(x, y, z, intensity, radius, color = 0xffffff) {
+    const light = new THREE.PointLight(color, intensity, radius);
+    light.position.set(x, y, z);
+    return light;
+}
+export const lights = [
+    new THREE.AmbientLight(0x202020),
+
+    // initial
+    makePointLight(
+        0, 3, 0,
+        3, 5,
+    ),
+    makePointLight(
+        0, 1.5, 0,
+        0.2, 10
+    ),
+
+    // top
+    makePointLight(
+        5.5, 4, 2.5,
+        8, 6
+    ),
+    makePointLight(
+        8.5, 4, 2.5,
+        8, 6
+    ),
+    makePointLight(
+        7, -2, 2.5,
+        3, 6
+    ),
+
+    // boiler
+    makePointLight(
+        13, 5, 10,
+        4, 7.5
+    ),
+    makePointLight(
+        13, 1.5, 10,
+        0.3, 5
+    ),
+
+    // bottom
+    makePointLight(
+        2.5, 4, 17.2,
+        6, 6
+    ),
+    makePointLight(
+        5.2, 4, 17.2,
+        6, 6
+    ),
+    makePointLight(
+        8, 4, 17.2,
+        5, 6
+    ),
+    makePointLight(
+        4, -1, 17.2,
+        2, 6,
+    ),
+    makePointLight(
+        6, -1, 17.2,
+        2, 6,
+    ),
+
+
+    // storage
+    makePointLight(
+        3.6, 5, 10.1,
+        12, 8
+    ),
+    makePointLight(
+        3.6, 2, 10.1,
+        1, 5
+    ),
+]

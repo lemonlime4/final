@@ -2,7 +2,7 @@ export const options = {
     maxDt: 1000 / 20,
     fov: 45,
     pixelRatio: .5,
-    walkSpeed: 1.5,
+    walkSpeed: 6,
     turnSpeed: 4,
     firstPersonFov: 80,
     firstPersonHeight: 1.6,

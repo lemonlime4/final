@@ -6,6 +6,7 @@ import { Controller } from './interface.js';
 export class FirstPersonController extends Controller {
     constructor({ camera, mouse }) {
         super();
+        this.isFirstPerson = true;
         this.camera = camera;
         this.cameraEuler = new THREE.Euler(0, 0, 0, "YXZ");
         this.keys = {

@@ -121,17 +121,11 @@ const map = await new Promise(resolve => gltfLoader.load(
 ));
 scene.add(map);
 
-{
-    const light = new THREE.RectAreaLight(
-        0xffffff,
-        3,
-        5, 3
-    );
-    light.position.set(0, 6, 0);
-    light.lookAt(0, 0, 0);
+import { lights } from './scene.js';
+for (const light of lights) {
     scene.add(light);
-}
-
+    // scene.add(new THREE.PointLightHelper(light));
+};
 
 
 
@@ -146,7 +140,7 @@ scene.add(player.model);
 
 
 
-scene.add(new THREE.AmbientLight(0x202020))
+
 
 
 

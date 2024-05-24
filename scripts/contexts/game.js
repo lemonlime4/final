@@ -41,7 +41,11 @@ export class GameContext extends Context {
     }
 
     updateController() {
-        ;
+        if (firstPersonBounds.containsPoint(player.model.position)) {
+            if (!this.controller?.isFirstPerson) {
+                this.controller = new FirstPersonController(this);
+            }
+        }
     }
 
     handleMousemove(event) {
