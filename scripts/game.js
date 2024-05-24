@@ -4,12 +4,40 @@ import {
     fixedCameraZones,
     firstPersonBounds,
 } from './scene.js';
+import { player } from './player.js';
 
 
 
 class FirstPersonController {
-    constructor() {
-        ;
+    static keyMapping = new Map([
+        ['KeyW', 'up'],
+        ['ArrowUp', 'up'],
+        ['KeyA', 'left'],
+        ['ArrowLeft', 'left'],
+        ['KeyS', 'down'],
+        ['ArrowDown', 'down'],
+        ['KeyD', 'right'],
+        ['ArrowRight', 'right'],
+    ]);
+    constructor({ player, camera }) {
+        this.player = player;
+        this.camera = camera;
+        this.keys = {
+            up: false,
+            left: false,
+            down: false,
+            right: false
+        };
+    }
+    
+    handleKeydown(event) {
+        const dir = options.firstPersonKeyMapping.get(event.code);
+        if (dir) this.keys[dir] = true;
+    }
+    
+    handleKeydown(event) {
+        const dir = options.firstPersonKeymapping.get(event.code);
+        if (dir) this.keys[dir] = false;
     }
 }
 
@@ -33,9 +61,7 @@ export class Game {
 
     updateController() {
         if (firstPersonBounds.containsPoint(this.player.model.position)) {
-            this.controller = new FirstPersonController({
-                this.player, this.camera
-            });
+            this.controller = new FirstPersonController(this);
         }
     }
 

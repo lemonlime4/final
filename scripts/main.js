@@ -6,7 +6,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
-
+import './game.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(options.fov, 1, 0.01, 100);

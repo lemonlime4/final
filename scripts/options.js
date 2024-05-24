@@ -7,7 +7,7 @@ export const options = {
     firstPersonFov: 80,
     firstPersonHeight: 1.6,
     firstPersonSensitivity: .005,
-    keyDirectionMapping: new Map([
+    firstPersonKeyMapping: new Map([
         ['KeyW', 'up'],
         ['ArrowUp', 'up'],
         ['KeyA', 'left'],
