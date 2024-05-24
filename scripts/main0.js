@@ -45,6 +45,9 @@ composer.addPass(new OutputPass());
 const mouse = {
     position: new THREE.Vector2(),
     movement: new THREE.Vector2(),
+    update() {
+        this.movement.set(0, 0);
+    }
 };
 
 window.addEventListener('mousemove', event => {
@@ -108,10 +111,12 @@ const gltfLoader = new GLTFLoader().setPath('../assets/models/');
 const map = await new Promise(resolve => gltfLoader.load(
     'scene.glb',
     gltf => {
-        for (const obj of gltf.scene.children) {
-            obj.material.side = THREE.FrontSide;
+        for (const mesh of gltf.scene.children) {
+            mesh.material = new THREE.MeshStandardMaterial({
+                roughness: 1,
+                color: 0xffffff,
+            })
         }
-        console.log(gltf.scene);
         resolve(gltf.scene);
     }
 ));
@@ -230,24 +235,141 @@ const player = {
 };
 
 
-camera.position.set(0, 20, 0);
-camera.lookAt(new THREE.Vector3(0, 0, 0));
+window.p = player;
+// import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+// const c = new OrbitControls(camera, renderer.domElement);
 
 
+
+
+import { fixedCameraZones, firstPersonBounds, walkAreas } from './scene.js';
 scene.add(new THREE.AmbientLight(0x202020))
+for (const a of walkAreas) {
+    scene.add(new THREE.Box3Helper(a.box, 0xff0000));
+    // const b = new THREE.AxesHelper();
+    // a.scale.set(0.5,0.5,0.5);
+
+}
+const lights = [
+    new THREE.RectAreaLight()
+];
+// import { RectAreaLightHelper } from 'three/addons/helpers/RectAreaLightHelper.js';
+// for (const light of lights) scene.add(new RectAreaLightHelper(light))
+
+
+
+
+
+
+
+
+const controls = {
+    firstPersonEuler: new THREE.Euler(0, 0, 0, 'YXZ'),
+    activeZone: null,
+    zones: [
+        ...fixedCameraZones,
+        {
+            isFirstPerson: true,
+            bounds: firstPersonBounds
+        }
+    ],
+    update(dt) {
+        if (this.activeZone?.isFirstPerson) {
+            player.model.quaternion.setFromEuler(new THREE.Euler(0, this.firstPersonEuler.y - Math.PI, 0));
+            player.model.position.add(new THREE.Vector3(
+                keyboard.left - keyboard.right,
+                0,
+                keyboard.up - keyboard.down
+            ).normalize().multiplyScalar(dt * options.walkSpeed)
+                .applyQuaternion(player.model.quaternion));
+            this.firstPersonEuler.y -= mouse.movement.x * options.firstPersonSensitivity;
+            this.firstPersonEuler.x -= mouse.movement.y * options.firstPersonSensitivity;
+            this.firstPersonEuler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.firstPersonEuler.x));
+            camera.position.copy(player.model.position)
+                .add(new THREE.Vector3(0, options.firstPersonHeight, 0));
+            camera.quaternion.setFromEuler(this.firstPersonEuler);
+        }
+        const playerPos = player.model.position;
+        if (this.activeZone?.bounds.containsPoint(playerPos))
+            return;
+        const zone = this.zones.find(zone => zone.bounds.containsPoint(playerPos));
+        if (!zone) return;
+        if (this.activeZone?.isFirstPerson) {
+            camera.fov = options.fov;
+            camera.updateProjectionMatrix();
+            player.model.visible = true;
+            player.stopWalking();
+        }
+        if (zone.isFirstPerson) {
+            camera.fov = options.firstPersonFov;
+            camera.updateProjectionMatrix();
+            player.model.visible = false;
+            player.walk();
+            this.firstPersonEuler
+                .setFromQuaternion(player.model.quaternion);
+            // this.firstPersonEuler.y += Math.PI;
+        }
+        else {
+            camera.position.copy(zone.camera.from);
+            camera.lookAt(zone.camera.to);
+        }
+        this.activeZone = zone;
+    }
+}
+for (const zone of controls.zones)
+    scene.add(new THREE.Box3Helper(zone.bounds));
+
+
+
+
+const raycaster = new THREE.Raycaster();
+const intersectables = [map];
+window.addEventListener('mousedown', event => {
+    const screenspaceMouse = new THREE.Vector2(
+        -1 + 2 * mouse.position.x / window.innerWidth,
+        +1 - 2 * mouse.position.y / window.innerHeight
+    );
+    raycaster.setFromCamera(screenspaceMouse, camera);
+    const ray = raycaster.ray;
+    const sceneIntersects = raycaster.intersectObjects(intersectables);
+    if (sceneIntersects.length > 0) {
+        player.moveTo(sceneIntersects[0].point);
+    }
+    const areaIntersect = walkAreas
+        .map(area => {
+            const pos = ray.intersectBox(area.box, new THREE.Vector3());
+            if (pos === null) return [Infinity, null];
+            return { distance: pos.distanceTo(ray.origin), area };
+        })
+        .reduce((closest, current) => {
+            if (current.distance < closest.distance) return current;
+            return closest;
+        }, { distance: Infinity, area: null });
+
+    if (areaIntersect.area === null) return;
+    player.moveTo(areaIntersect.area.target
+        .get(controls.activeZone.name));
+});
+
+// scene.remove(player.model);
+
+// game loop
 
 let lastTimestamp = 0;
 requestAnimationFrame(function tick(timestamp) {
     const dt = Math.min(timestamp - lastTimestamp, options.maxDt) / 1000;
     lastTimestamp = timestamp;
 
+    mouse.update(dt);
     player.update(dt);
+    controls.update(dt);
+
     composer.render();
     requestAnimationFrame(tick);
 });
 
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-const oc = new OrbitControls(camera, renderer.domElement);
+
+
 
 
 
