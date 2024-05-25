@@ -1,4 +1,7 @@
-Dim ← 128_128
+# uiua version 0.10.3
+# generate blue noise texture with void-and-cluster algorithm
+# very slow...
+Dim ← 512_512
 Sigma ← 1.9
 
 Divisor ← ××2.Sigma
@@ -66,4 +69,4 @@ Up ← ⍜⊙⍉▽⟜▽
 ÷/×Dim-1
 
 &p"Writing"
-&fwa "bluenoisetest.png" &ime "png"
+&fwa "assets/textures/bluenoise.png" &ime "png"

@@ -1,7 +1,7 @@
 export const options = {
     maxDt: 1000 / 20,
     fov: 45,
-    pixelRatio: .5,
+    pixelRatio: 0.5,
     walkSpeed: 6,
     turnSpeed: 4,
     firstPersonFov: 80,
@@ -17,4 +17,5 @@ export const options = {
         ['KeyD', 'right'],
         ['ArrowRight', 'right'],
     ]),
+    ditherThresholdMap: 'bluenoise.png',
 }

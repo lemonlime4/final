@@ -1,3 +1,6 @@
+const int ditherIterations = 32;
+const float ditherErrorFactor = 1.0;
+
 uniform sampler2D tDiffuse;
 uniform sampler2D threshold;
 
@@ -17,49 +20,101 @@ vec3 srgbToLinear(vec3 x) {
     return pow(x, vec3(2.2));
 }
 
-// const vec3 palette[16] = vec3[](
-//     vec3(0.031,0,0),vec3(0.125,0.102,0.043),vec3(0.263,0.157,0.09),vec3(0.286,0.161,0.063),vec3(0.137,0.263,0.035),vec3(0.365,0.31,0.118),vec3(0.612,0.42,0.125),vec3(0.663,0.133,0.059),vec3(0.169,0.204,0.486),vec3(0.169,0.455,0.035),vec3(0.816,0.792,0.251),vec3(0.91,0.627,0.467),vec3(0.416,0.58,0.671),vec3(0.835,0.769,0.702),vec3(0.988,0.906,0.431),vec3(0.988,0.98,0.886)
-// );
+// luminance sorted palette in srgb space
 const vec3 palette[] = vec3[](
-    vec3(0.051,0,0.137),vec3(0.161,0.169,0.275),vec3(0.224,0.337,0.333),vec3(0.553,0.576,0.361),vec3(0.235,0.082,0.129),vec3(0.478,0.278,0.192),vec3(0.773,0.647,0.431),vec3(0.831,0.808,0.765)
+    vec3(0.051,0,0.137),
+    vec3(0.235,0.082,0.129),
+    vec3(0.161,0.169,0.275),
+    vec3(0.224,0.337,0.333),
+    vec3(0.478,0.278,0.192),
+    vec3(0.553,0.576,0.361),
+    vec3(0.773,0.647,0.431),
+    vec3(0.831,0.808,0.765)
 );
-struct MixingPlan {
-    vec3 a;
-    vec3 b;
-    float t;
-};
-float colorDistance(vec3 a, vec3 b) {
-    return distance(a, b);
-}
-vec3 dither(vec3 color) {
-    ivec2 coord = ivec2(floor(gl_FragCoord)) % textureSize(threshold, 0);
-    float threshold = texelFetch(threshold, coord, 0).x;
-    color = linearToSrgb(color);
 
+float luminance(vec3 color) {
+    return dot(color, vec3(0.299, 0.587, 0.114));
+}
+float colorDistance(vec3 a, vec3 b) {
+    vec3 diff = b - a;
+    return dot(diff, diff);
+}
+
+int closestColor(vec3 color) {
     float leastDist = INF;
-    MixingPlan bestPlan;
+    int index = palette.length();
     for (int i = 0; i < palette.length(); i++) {
-        for (int j = 0; j < i; j++) {
-            vec3 a = palette[i];
-            vec3 b = palette[j];
-            vec3 d = b - a;
-            float t = dot(color - a, d) / dot(d, d);
-            float dist = colorDistance(a + t*d, color);
-            if (dist < leastDist) {
-                leastDist = dist;
-                bestPlan = MixingPlan(a, b, t);
-            }
+        vec3 entry = srgbToLinear(palette[i]);
+        float dist = colorDistance(entry, color);
+        if (dist < leastDist) {
+            leastDist = dist;
+            index = i;
         }
     }
+    return index;
+}
 
-    // color = bestPlan.t < threshold ? bestPlan.a : bestPlan.b;
-    color = mix(bestPlan.a, bestPlan.b, step(threshold,bestPlan.t));
-    color = srgbToLinear(color);
-    return color;
+// modified pattern dithering algorithm
+vec3 dither(vec3 color) {
+    int frequency[palette.length()];
+    vec3 error = vec3(0);
+
+    for (int i = 0; i < ditherIterations; i++) {
+        vec3 goal = color + error * ditherErrorFactor;
+        int closestIndex = closestColor(goal);
+        
+        frequency[closestIndex] += 1;
+        error += color - srgbToLinear(palette[closestIndex]);
+    }
+
+
+    ivec2 coord = ivec2(floor(gl_FragCoord)) % textureSize(threshold, 0);
+    int threshold = int(float(ditherIterations - 1) * texelFetch(threshold, coord, 0).x);
+    int sum = 0;
+ 
+    for (int i = 0; i < palette.length(); i++) {
+        sum += frequency[i];
+        if (threshold < sum) {
+             return srgbToLinear(palette[i]);
+        }
+    }
+    
+    // // Fill the candidate array
+    // int candidates[ditherIterations];
+    // vec3 error = vec3(0, 0, 0);
+
+    // for (int i = 0; i < ditherIterations; i++)
+    // {
+    //     vec3 goal = color + error * ditherErrorFactor;
+    //     int closestIndex = closestColor(goal);
+        
+    //     candidates[i] = closestIndex;
+    //     error += color - srgbToLinear(palette[closestIndex]);
+    // }
+
+    // // Sort the candidate array by luminance (bubble sort)
+    // for (int i = ditherIterations - 1; i > 0; i--) 
+    // {
+    //   for (int j = 0; j < i; j++) 
+    //   {
+    //       if (luminance(palette[candidates[j]]) > luminance(palette[candidates[j+1]])) 
+    //       { 
+    //           // Swap the candidates
+    //           int t = candidates[j]; 
+    //           candidates[j] = candidates[j+1]; 
+    //           candidates[j+1] = t; 
+    //       }
+    //   }
+    // }
+
+    // // Select from the candidate array, using the value in the threshold matrix
+    // ivec2 coord = ivec2(floor(gl_FragCoord)) % textureSize(threshold, 0);
+    // int threshold = int(float(ditherIterations - 1) * texelFetch(threshold, coord, 0).x);
+    // return srgbToLinear(palette[candidates[threshold]]);
 }
 
 void main() {
     vec3 color = texelFetch(tDiffuse, ivec2(floor(gl_FragCoord)), 0).xyz;
-    // color = dither(color);
+    color = dither(color);
     gl_FragColor = vec4(color, 1);
 }

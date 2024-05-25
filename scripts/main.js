@@ -7,6 +7,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 
+THREE.ColorManagement.enabled = true;
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(options.fov, 1, 0.01, 100);
 
@@ -27,7 +29,7 @@ const postShader = new ShaderPass({
     name: 'Post processing shader',
     uniforms: {
         tDiffuse: { value: null },
-        threshold: { value: textureLoader.load('bluenoise.png') },
+        threshold: { value: textureLoader.load(options.ditherThresholdMap) },
         resolution: { value: new THREE.Vector2() },
     },
     vertexShader: `varying vec2 UV;void main(){UV=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1);}`,
@@ -112,6 +114,7 @@ const map = await new Promise(resolve => gltfLoader.load(
     gltf => {
         for (const obj of gltf.scene.children) {
             obj.material.side = THREE.FrontSide;
+            obj.material.dithering = true;
         }
         console.log(gltf.scene);
         resolve(gltf.scene);

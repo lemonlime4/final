@@ -1,5 +1,4 @@
-// A bunch of hardcoded data about the scene
-// that couldn't be packed into the gltf.
+// A bunch of hardcoded data about the scene.
 
 import * as THREE from 'three';
 
@@ -48,7 +47,7 @@ export const firstPersonBounds = new THREE.Box3(
 
 
 
-export const walkAreas = [
+export const interactions = [
     { // to initial
         box: new THREE.Box3(
             new THREE.Vector3(2.3, -.1, .3),
@@ -134,6 +133,22 @@ export const lights = [
 
     // boiler
     makePointLight(
+        10.9, 4, 7,
+        4, 5
+    ),
+    makePointLight(
+        10.9, 1.5, 7,
+        0.1, 2
+    ),
+    makePointLight(
+        10.9, 4, 13.5,
+        4, 5
+    ),
+    makePointLight(
+        10.9, 1.5, 13.5,
+        0.1, 2
+    ),
+    makePointLight(
         15, 5, 10,
         2, 6
     ),
@@ -177,5 +192,9 @@ export const lights = [
     makePointLight(
         3.6, 2, 10.1,
         1, 5
+    ),
+    makePointLight(
+        -0.5, 3, 8.7,
+        2, 5
     ),
 ]
