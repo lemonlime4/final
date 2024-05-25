@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { player } from '../player.js';
 import { options } from '../options.js';
-import { Controller } from './interface.js';
 
-export class FirstPersonController extends Controller {
+
+
+export class FirstPersonController {
     constructor({ camera, mouse }) {
-        super();
         this.isFirstPerson = true;
         this.camera = camera;
         this.cameraEuler = new THREE.Euler(0, 0, 0, "YXZ");
@@ -33,7 +33,6 @@ export class FirstPersonController extends Controller {
             .multiplyScalar(dt * options.walkSpeed)
             .applyEuler(horizontalEuler));
         this.camera.position.y = options.firstPersonHeight;
-        this.camera.quaternion.setFromEuler(this.cameraEuler);
         player.model.quaternion.setFromEuler(horizontalEuler);
         player.model.position.copy(this.camera.position);
         player.model.position.y = 0;
@@ -44,7 +43,7 @@ export class FirstPersonController extends Controller {
         this.cameraEuler.y -= this.mouseMovement.x * options.firstPersonSensitivity;
         this.cameraEuler.x -= this.mouseMovement.y * options.firstPersonSensitivity;
         this.cameraEuler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.cameraEuler.x));
-        // this.camera.quaternion.setFromEuler(this.cameraEuler);
+        this.camera.quaternion.setFromEuler(this.cameraEuler);
     }
 
     handleMousedown(event) {

@@ -43,7 +43,6 @@ composer.addPass(new OutputPass());
 // mouse.position inputs
 const mouse = {
     position: new THREE.Vector2(),
-    movement: new THREE.Vector2(),
 };
 
 import { GameContext } from './contexts/game.js';
@@ -51,7 +50,6 @@ const context = new GameContext({ camera, mouse });
 
 window.addEventListener('mousemove', event => {
     mouse.position.set(event.clientX, event.clientY);
-    mouse.movement.set(event.movementX, event.movementY);
     context.handleMousemove(event);
 });
 
@@ -153,6 +151,8 @@ requestAnimationFrame(function tick(timestamp) {
 
     // camera.position.x += .1;
     context.update(dt);
+    // camera.position.set(-1.1, 1.3, 0);
+    // camera.lookAt(-1.36068, 1.24829, 0);
     composer.render();
     requestAnimationFrame(tick);
 });

@@ -9,6 +9,7 @@ import {
 
 
 import { FirstPersonController } from '../controllers/firstPerson.js';
+import { FixedCameraController } from '../controllers/fixedCamera.js';
 
 
 
@@ -30,8 +31,7 @@ export class GameContext extends Context {
         this.camera = camera;
         this.mouse = mouse;
 
-        this.controller = null;
-        this.updateController();
+        this.controller = new FirstPersonController(this);
     }
 
     update(dt) {
@@ -46,21 +46,26 @@ export class GameContext extends Context {
                 this.controller = new FirstPersonController(this);
             }
         }
+        const zone = fixedCameraZones.find(zone => zone.bounds.containsPoint(player.model.position));
+        if (!zone) return;
+        if (!this.controller.isFixedCamera)
+            this.controller = new FixedCameraController(this);
+        this.controller.setCamera(zone.camera);
     }
 
     handleMousemove(event) {
-        this.controller.handleMousemove(event);
+        this.controller.handleMousemove?.(event);
     }
 
     handleMousedown(event) {
-        this.controller.handleMousedown(event);
+        this.controller.handleMousedown?.(event);
     }
 
     handleKeydown(event) {
-        this.controller.handleKeydown(event);
+        this.controller.handleKeydown?.(event);
     }
 
     handleKeyup(event) {
-        this.controller.handleKeyup(event);
+        this.controller.handleKeyup?.(event);
     }
 }

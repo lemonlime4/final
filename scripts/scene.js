@@ -36,7 +36,7 @@ export const fixedCameraZones = [
     makeFixedCameraZone(
         "Storage",
         0.2, 6.5, 7.2, 13.7,
-        -3, 2, 9.5, 5, 1, 10.5
+        10, 2.2, 8.5, 5, 1, 9.5
     ),
 ];
 
@@ -134,8 +134,12 @@ export const lights = [
 
     // boiler
     makePointLight(
+        15, 5, 10,
+        2, 6
+    ),
+    makePointLight(
         13, 5, 10,
-        4, 7.5
+        3, 7.5
     ),
     makePointLight(
         13, 1.5, 10,
