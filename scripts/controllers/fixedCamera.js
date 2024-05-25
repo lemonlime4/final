@@ -7,6 +7,7 @@ export class FixedCameraController {
     constructor({ camera, mouse, map, interaction }) {
         this.isFixedCamera = true;
         this.camera = camera;
+        this.mouse = mouse;
         this.map = map;
         this.raycaster = new THREE.Raycaster();
         this.interaction = null;

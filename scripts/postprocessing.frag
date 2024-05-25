@@ -1,5 +1,5 @@
 const int ditherIterations = 32;
-const float ditherErrorFactor = 1.0;
+const float ditherErrorFactor = 0.8;
 
 uniform sampler2D tDiffuse;
 uniform sampler2D threshold;

@@ -114,7 +114,6 @@ const map = await new Promise(resolve => gltfLoader.load(
     gltf => {
         for (const obj of gltf.scene.children) {
             obj.material.side = THREE.FrontSide;
-            obj.material.dithering = true;
         }
         console.log(gltf.scene);
         resolve(gltf.scene);
