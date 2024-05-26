@@ -26,15 +26,17 @@ import { FixedCameraController } from '../controllers/fixedCamera.js';
 
 
 export class GameContext extends Context {
-    constructor({ camera, mouse, map }) {
+    constructor({ camera, mouse, overlay }) {
         super();
         this.camera = camera;
         this.mouse = mouse;
-        this.map = map;
+        this.overlay = overlay;
+        this.transitionToMenuContext = false;
 
 
         this.controller = new FirstPersonController(this);
         this.interaction = null;
+        overlay.ctx.clearRect(0, 0, overlay.canvas.width, overlay.canvas.height);
     }
 
     update(dt) {

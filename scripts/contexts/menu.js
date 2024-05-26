@@ -2,33 +2,45 @@ import * as THREE from 'three';
 import { Context } from './interface.js';
 import { player } from '../player.js';
 import { options } from '../options.js';
-
+import { } from '../dialog.js';
 
 
 
 const states = {
     initial: 0,
     introduction: 1,
-    transition: 2
+    alarm: 2,
+    transition: 3,
 };
 
 
 export class MenuContext extends Context {
-    constructor({ camera, mouse, overlay, map }) {
+    constructor({ camera, mouse, overlay, postShader }) {
         super();
+        this.camera = camera;
         this.mouse = mouse;
         this.overlay = overlay;
+        this.postShader = postShader;
         this.time = 0;
         this.state = states.initial;
         this.newGameHover = false;
         this.newGameBounds = new THREE.Box2();
         this.pixelFontSize = 0;
+        this.transitionToGameContext = false;
 
         player.model.visible = false;
         camera.position.set(-1.1059, 1.2932, 0.002416);
         camera.lookAt(-1.36068, 1.24829, 0);
         camera.fov = 80;
         camera.updateProjectionMatrix();
+
+        this.oldCamera = {
+            position: camera.position.clone(),
+            quaternion: camera.quaternion.clone(),
+            fov: camera.fov
+        };
+        this.targetCameraPosition = player.model.position.clone();
+        this.targetCameraPosition.y = options.firstPersonHeight;
     }
 
     exit() {
@@ -102,8 +114,36 @@ export class MenuContext extends Context {
             };
         }
 
+        if (this.state === states.alarm) {
+            this.time += dt;
+
+            if (0.5 < this.time && this.time < 1.3 ||
+                2.1 < this.time && this.time < 2.9 ||
+                3.7 < this.time && this.time < 4.5) {
+                this.postShader.uniforms.alarmed.value = true;
+                console.log('alarm');
+            }
+            else {
+                this.postShader.uniforms.alarmed.value = false;
+            }
+            if (this.time > 5) {
+                this.state = states.transition;
+                this.time = 0;
+            }
+        }
+
         if (this.state === states.transition) {
             ;
+            this.time += dt;
+            const t = Math.min(1, this.time / 1.5);
+            this.camera.position.lerpVectors(
+                this.oldCamera.position,
+                this.targetCameraPosition,
+                t
+            );
+            this.camera.fov = this.oldCamera.fov * (1 - t)
+                + options.firstPersonFov * t;
+            this.camera.updateProjectionMatrix();
         }
     }
 
@@ -135,8 +175,13 @@ export class MenuContext extends Context {
         }
         if (this.state === states.introduction) {
             if (this.time > 7) {
-                this.state = states.transition;
+                this.state = states.alarm;
                 this.time = 0;
+            }
+        }
+        if (this.state === states.transition) {
+            if (this.time > 3) {
+                this.transitionToGameContext = true;
             }
         }
     }

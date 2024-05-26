@@ -1,8 +1,13 @@
 html,
 body {
     margin: 0;
+    height: 100%;
     overflow: hidden;
     background: black;
+    text-rendering: geometricPrecision;
+    -webkit-font-smooth: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 
@@ -14,8 +19,26 @@ canvas {
     left: 0;
 }
 
+#renderOutput {
+    z-index: 1;
+}
+
 #overlay {
     display: none;
-    /* z-index: 100;
-    border: 1px solid red; */
+}
+
+#dialog {
+    z-index: 10;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 20%;
+    box-sizing: border-box;
+    padding: 3em 6em;
+    /* border: 2px solid red; */
+    background: rgb(0 0 0 / .9);
+    color: white;
+    font: 24px 'Dogica Pixel';
 }

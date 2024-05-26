@@ -1,15 +1,14 @@
 import * as THREE from 'three';
 import { player } from '../player.js';
 import { options } from '../options.js';
-import { walkInteractions } from '../scene.js';
+import { map, walkInteractions } from '../scene.js';
 
 export class FixedCameraController {
-    constructor({ camera, mouse, map, overlay }) {
+    constructor({ camera, mouse, overlay }) {
         console.log('switch to fixed camera');
         this.isFixedCamera = true;
         this.camera = camera;
         this.mouse = mouse;
-        this.map = map;
         this.overlay = overlay;
         this.raycaster = new THREE.Raycaster();
         this.interaction = null;
@@ -31,7 +30,7 @@ export class FixedCameraController {
     }
 
     handleMousedown() {
-        const sceneIntersects = this.raycaster.intersectObject(this.map);
+        const sceneIntersects = this.raycaster.intersectObject(map);
         if (sceneIntersects.length > 0) {
             player.moveTo(sceneIntersects[0].point);
         }

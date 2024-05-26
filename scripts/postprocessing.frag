@@ -2,14 +2,16 @@ const int ditherIterations = 32;
 const float ditherErrorFactor = 0.8;
 const float overlayThreshold = 0.7;
 
+uniform vec2 resolution;
 uniform sampler2D tDiffuse;
 uniform sampler2D overlay;
 uniform sampler2D threshold;
 uniform sampler2D normalCursor;
 
-uniform vec2 resolution;
 uniform vec2 mousePosition;
 uniform int mouseState;
+
+uniform bool alarmed;
 
 const float PI = 3.1415926535897932384626433832795;
 const float INF = 3.4e38;
@@ -132,11 +134,18 @@ void main() {
     ivec2 fragCoord = ivec2(floor(gl_FragCoord));
     vec3 color = texelFetch(tDiffuse, fragCoord, 0).xyz;
 
+    if (alarmed) {
+        color = color * vec3(1, 0.05, 0.01);
+    }
+
     color = dither(color, fragCoord);
 
     vec4 overlayColor = texelFetch(overlay, fragCoord, 0);
-    color = mix(color, overlayColor.xyz, step(overlayThreshold, overlayColor.w));
-    color = srgbToLinear(palette[closestColor(color)]);
+    color = mix(
+        color,
+        srgbToLinear(palette[closestColor(overlayColor.xyz)]),
+        step(overlayThreshold, overlayColor.w)
+    );
     
     #define OVERLAY_IMAGE(S, O) color = overlayImage(color, S, mousePosition, fragCoord - O)
     switch (mouseState) {

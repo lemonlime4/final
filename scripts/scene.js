@@ -1,6 +1,26 @@
 // A bunch of hardcoded data about the scene.
 
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+
+
+export const map = await new Promise(resolve => new GLTFLoader().load(
+    '../assets/models/scene.glb',
+    gltf => {
+        for (const obj of gltf.scene.children) {
+            obj.material.side = THREE.FrontSide;
+        }
+        console.log(gltf.scene);
+        resolve(gltf.scene);
+    }
+));
+
+
+
+
+
+
 
 function makeFixedCameraZone(name, ax, az, bx, bz, fx, fy, fz, tx, ty, tz) {
     return {
@@ -104,6 +124,7 @@ function makePointLight(x, y, z, intensity, radius, color = 0xffffff) {
     light.position.set(x, y, z);
     return light;
 }
+
 export const lights = [
     new THREE.AmbientLight(0x404040),
 
@@ -149,15 +170,19 @@ export const lights = [
         0.1, 2
     ),
     makePointLight(
-        16, 4, 10,
+        16, 3, 10,
         2, 6
     ),
     makePointLight(
-        13, 4, 10,
-        5, 6
+        14, 3, 10,
+        2, 6
     ),
     makePointLight(
-        13, 1.5, 10,
+        13, 3, 10,
+        3, 3
+    ),
+    makePointLight(
+        13, 2, 10,
         0.1, 5
     ),
 
@@ -197,4 +222,4 @@ export const lights = [
         -0.5, 3, 8.7,
         2, 5
     ),
-]
+];

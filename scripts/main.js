@@ -74,6 +74,8 @@ const postShader = new ShaderPass({
         resolution: { value: new THREE.Vector2() },
         mousePosition: { value: new THREE.Vector2() },
         mouseState: { value: 1 },
+
+        alarmed: { value: false },
     },
     vertexShader: `varying vec2 UV;void main(){UV=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1);}`,
     fragmentShader: await (await fetch('./scripts/postprocessing.frag')).text()
@@ -124,19 +126,10 @@ const mouse = {
 
 // add map
 
-const map = await new Promise(resolve => new GLTFLoader().load(
-    '../assets/models/scene.glb',
-    gltf => {
-        for (const obj of gltf.scene.children) {
-            obj.material.side = THREE.FrontSide;
-        }
-        console.log(gltf.scene);
-        resolve(gltf.scene);
-    }
-));
+import { map, lights } from './scene.js';
+
 scene.add(map);
 
-import { lights } from './scene.js';
 for (const light of lights) {
     scene.add(light);
     // scene.add(new THREE.PointLightHelper(light));
@@ -154,10 +147,16 @@ scene.add(player.model);
 
 
 
+
 import { MenuContext } from './contexts/menu.js';
 import { GameContext } from './contexts/game.js';
-const contextData = { camera, mouse, map, overlay };
+const contextData = { postShader, camera, mouse, overlay };
 let context = new MenuContext(contextData);
+
+
+
+
+window.c = camera;
 
 window.addEventListener('mousemove', event => {
     mouse.position.set(event.clientX, event.clientY)
@@ -215,6 +214,11 @@ let lastTimestamp = 0;
 requestAnimationFrame(function tick(timestamp) {
     const dt = Math.min(timestamp - lastTimestamp, options.maxDt) / 1000;
     lastTimestamp = timestamp;
+
+    if (context.transitionToGameContext)
+        context = new GameContext(contextData);
+    if (context.transitionToMenuContext)
+        context = new MenuContext(contextData);
 
     context.update(dt);
     composer.render();

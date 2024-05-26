@@ -9,8 +9,8 @@ export class FirstPersonController {
         console.log('switch to first person');
         this.isFirstPerson = true;
         this.camera = camera;
-        this.cameraEuler = new THREE.Euler(0, -2, 0, "YXZ")
-        this.cameraEuler.y += Math.PI;
+        this.cameraEuler = new THREE.Euler(0, 0, 0, "YXZ")
+            .setFromQuaternion(camera.quaternion);
         this.keys = {
             up: false,
             left: false,
