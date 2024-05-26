@@ -42,19 +42,19 @@ export const fixedCameraZones = [
 
 export const firstPersonBounds = new THREE.Box3(
     new THREE.Vector3(-1.8, -.5, -1.3),
-    new THREE.Vector3(3.1, .5, 1.4)
+    new THREE.Vector3(1.8, .5, 1.4)
 );
 
 
 
-export const interactions = [
+export const walkInteractions = [
     { // to initial
         box: new THREE.Box3(
             new THREE.Vector3(2.3, -.1, .3),
             new THREE.Vector3(4.5, 2.5, 1)
         ),
         target: new Map([
-            ["Top", new THREE.Vector3(2, 0, 1)]
+            ["Top", new THREE.Vector3(1.7, 0, 0.9)]
         ]),
     },
     { // to storage
@@ -105,7 +105,7 @@ function makePointLight(x, y, z, intensity, radius, color = 0xffffff) {
     return light;
 }
 export const lights = [
-    new THREE.AmbientLight(0x202020),
+    new THREE.AmbientLight(0x404040),
 
     // initial
     makePointLight(
@@ -119,15 +119,15 @@ export const lights = [
 
     // top
     makePointLight(
-        5.5, 4, 2.5,
+        5.5, 4, 3,
         12, 6
     ),
     makePointLight(
-        8.5, 4, 2.5,
+        8.5, 4, 3,
         12, 6
     ),
     makePointLight(
-        7, -2, 2.5,
+        7, -2, 3,
         3, 6
     ),
 
@@ -150,15 +150,15 @@ export const lights = [
     ),
     makePointLight(
         16, 4, 10,
-        5, 6
+        2, 6
     ),
     makePointLight(
         13, 4, 10,
-        5, 7.5
+        5, 6
     ),
     makePointLight(
         13, 1.5, 10,
-        0.3, 5
+        0.1, 5
     ),
 
     // bottom

@@ -1,7 +1,8 @@
 export const options = {
+    gameTitle: 'AMONG US',
     maxDt: 1000 / 20,
     fov: 45,
-    pixelRatio: 0.5,
+    pixelRatio: 1 / 2,
     walkSpeed: 6,
     turnSpeed: 4,
     firstPersonFov: 80,

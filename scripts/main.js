@@ -5,32 +5,75 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 
-THREE.ColorManagement.enabled = true;
 
+
+
+// scene
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(options.fov, 1, 0.01, 100);
 
 const renderer = new THREE.WebGLRenderer({
-    canvas: document.querySelector('canvas'),
+    canvas: document.querySelector('#renderOutput'),
 });
 document.body.appendChild(renderer.domElement);
 
 
 
-// post processing
+// load fonts
+{
+    const bebasNeue = new FontFace(
+        'Bebas Neue',
+        'url(../assets/fonts/bebasNeue.woff2)',
+        {}
+    );
+    const dogicaPixel = new FontFace(
+        'Dogica Pixel',
+        'url(../assets/fonts/dogicaPixel.woff2)',
+        {}
+    );
+    const dogicaPixelBold = new FontFace(
+        'Dogica Pixel',
+        'url(../assets/fonts/dogicaPixelBold.woff2)',
+        {
+            weight: 'bold',
+        }
+    );
+    document.fonts.add(bebasNeue);
+    document.fonts.add(dogicaPixel);
+    document.fonts.add(dogicaPixelBold);
+    await Promise.all([
+        bebasNeue.load(),
+        dogicaPixel.load(),
+        dogicaPixelBold.load()
+    ]);
+}
 
+
+
+// post processing
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
+
 const textureLoader = new THREE.TextureLoader()
     .setPath('../assets/textures/');
 const postShader = new ShaderPass({
     name: 'Post processing shader',
     uniforms: {
         tDiffuse: { value: null },
-        threshold: { value: textureLoader.load(options.ditherThresholdMap) },
+        overlay: { value: null },
+        threshold: {
+            value: textureLoader.load(options.ditherThresholdMap)
+        },
+        normalCursor: {
+            value: textureLoader.load('bayer.png')
+        },
+
         resolution: { value: new THREE.Vector2() },
+        mousePosition: { value: new THREE.Vector2() },
+        mouseState: { value: 1 },
     },
     vertexShader: `varying vec2 UV;void main(){UV=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1);}`,
     fragmentShader: await (await fetch('./scripts/postprocessing.frag')).text()
@@ -42,75 +85,47 @@ composer.addPass(new OutputPass());
 
 
 
+// overlay canvas
+const overlay = {
+    canvas: document.querySelector('#overlay'),
+    ctx: document.querySelector('#overlay').getContext('2d'),
+    updateUniforms() {
+        postShader.uniforms.overlay.value = new THREE.CanvasTexture(this.canvas);
+    }
+};
+
+
+
 // mouse.position inputs
 const mouse = {
     position: new THREE.Vector2(),
-};
-
-import { GameContext } from './contexts/game.js';
-const context = new GameContext({ camera, mouse });
-
-window.addEventListener('mousemove', event => {
-    mouse.position.set(event.clientX, event.clientY);
-    context.handleMousemove(event);
-});
-
-window.addEventListener('mousedown', event => {
-    context.handleMousedown(event);
-})
-
-window.addEventListener('keydown', event => {
-    context.handleKeydown(event);
-})
-
-window.addEventListener('keyup', event => {
-    context.handleKeyup(event);
-})
-
-// window.addEventListener('blur', event => {
-// context.handleBlur(event);
-// })
-
-
-
-
-
-
-// handling window resize
-// resize renderer, set camera aspect ratio, clamp mouse.position
-{
-    function onResize() {
-        renderer.setPixelRatio(options.pixelRatio);
-        composer.setPixelRatio(options.pixelRatio);
-        renderer.setSize(window.innerWidth, window.innerHeight, true);
-        composer.setSize(window.innerWidth, window.innerHeight);
-        renderer.getSize(postShader.uniforms.resolution.value);
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-
-        mouse.position.clamp(
-            new THREE.Vector2(0, 0),
-            new THREE.Vector2(window.innerWidth, window.innerHeight)
+    updateUniforms() {
+        postShader.uniforms.mousePosition.value.set(
+            this.position.x,
+            overlay.canvas.height - this.position.y
         );
     }
-    onResize();
-    window.addEventListener('resize', onResize);
-}
+};
 
 
 
 
 
 
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-const gltfLoader = new GLTFLoader().setPath('../assets/models/');
+
+
+
+
+
+
+
 
 
 // add map
 
-const map = await new Promise(resolve => gltfLoader.load(
-    'scene.glb',
+const map = await new Promise(resolve => new GLTFLoader().load(
+    '../assets/models/scene.glb',
     gltf => {
         for (const obj of gltf.scene.children) {
             obj.material.side = THREE.FrontSide;
@@ -139,7 +154,57 @@ scene.add(player.model);
 
 
 
+import { MenuContext } from './contexts/menu.js';
+import { GameContext } from './contexts/game.js';
+const contextData = { camera, mouse, map, overlay };
+let context = new MenuContext(contextData);
 
+window.addEventListener('mousemove', event => {
+    mouse.position.set(event.clientX, event.clientY)
+        .multiplyScalar(options.pixelRatio);
+    mouse.updateUniforms();
+    context.handleMousemove(event);
+});
+
+window.addEventListener('mousedown', event => {
+    context.handleMousedown(event);
+})
+
+window.addEventListener('keydown', event => {
+    context.handleKeydown(event);
+})
+
+window.addEventListener('keyup', event => {
+    context.handleKeyup(event);
+})
+
+// handling window resize
+{
+    function onResize() {
+        renderer.setPixelRatio(options.pixelRatio);
+        composer.setPixelRatio(options.pixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight, true);
+        composer.setSize(window.innerWidth, window.innerHeight);
+        const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+        postShader.uniforms.resolution.value.copy(size);
+        overlay.canvas.width = size.width;
+        overlay.canvas.height = size.height;
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        mouse.position.clamp(
+            new THREE.Vector2(0, 0),
+            new THREE.Vector2(window.innerWidth, window.innerHeight)
+        );
+        mouse.updateUniforms();
+        context.handleResize();
+    }
+    onResize();
+    window.addEventListener('resize', onResize);
+}
+
+// window.addEventListener('blur', event => {
+// context.handleBlur(event);
+// })
 
 
 
@@ -151,11 +216,9 @@ requestAnimationFrame(function tick(timestamp) {
     const dt = Math.min(timestamp - lastTimestamp, options.maxDt) / 1000;
     lastTimestamp = timestamp;
 
-    // camera.position.x += .1;
     context.update(dt);
-    // camera.position.set(-1.1, 1.3, 0);
-    // camera.lookAt(-1.36068, 1.24829, 0);
     composer.render();
+
     requestAnimationFrame(tick);
 });
 
@@ -165,11 +228,12 @@ requestAnimationFrame(function tick(timestamp) {
 
 
 
-// import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-// const oc = new OrbitControls(camera, renderer.domElement);
+import { walkInteractions } from './scene.js';
+for (const x of walkInteractions) {
+    scene.add(new THREE.Box3Helper(x.box));
+}
 
-// camera.position.set(0, 10, 0);
-camera.lookAt(new THREE.Vector3(0, 0, 0));
+
 
 // stats
 

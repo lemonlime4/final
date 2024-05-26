@@ -4,4 +4,5 @@ export class Context {
     handleMousedown(event) { }
     handleKeydown(event) { }
     handleKeyup(event) { }
+    handleResize() { }
 }

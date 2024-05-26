@@ -6,9 +6,11 @@ import { options } from '../options.js';
 
 export class FirstPersonController {
     constructor({ camera, mouse }) {
+        console.log('switch to first person');
         this.isFirstPerson = true;
         this.camera = camera;
-        this.cameraEuler = new THREE.Euler(0, 0, 0, "YXZ");
+        this.cameraEuler = new THREE.Euler(0, -2, 0, "YXZ")
+        this.cameraEuler.y += Math.PI;
         this.keys = {
             up: false,
             left: false,
@@ -21,6 +23,7 @@ export class FirstPersonController {
         camera.fov = options.firstPersonFov;
         camera.updateProjectionMatrix();
         camera.position.copy(player.model.position);
+        camera.quaternion.setFromEuler(this.cameraEuler);
     }
 
     update(dt) {
@@ -42,6 +45,7 @@ export class FirstPersonController {
         this.mouseMovement.set(event.movementX, event.movementY);
         this.cameraEuler.y -= this.mouseMovement.x * options.firstPersonSensitivity;
         this.cameraEuler.x -= this.mouseMovement.y * options.firstPersonSensitivity;
+        this
         this.cameraEuler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.cameraEuler.x));
         this.camera.quaternion.setFromEuler(this.cameraEuler);
     }

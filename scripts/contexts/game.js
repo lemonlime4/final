@@ -32,6 +32,7 @@ export class GameContext extends Context {
         this.mouse = mouse;
         this.map = map;
 
+
         this.controller = new FirstPersonController(this);
         this.interaction = null;
     }
@@ -52,7 +53,7 @@ export class GameContext extends Context {
         if (!zone) return;
         if (!this.controller.isFixedCamera)
             this.controller = new FixedCameraController(this);
-        this.controller.setCamera(zone.camera);
+        this.controller.setZone(zone);
     }
 
     handleMousemove(event) {

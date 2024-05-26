@@ -1,13 +1,3 @@
-@font-face {
-    font-family: 'Bebas Neue';
-    src: url(../../assets/fonts/bebasNeue.ttf);
-}
-
-@font-face {
-    font-family: 'Dogica Pixel';
-    src: url(../../assets/fonts/dogicaPixel.ttf);
-}
-
 html,
 body {
     margin: 0;
@@ -15,12 +5,17 @@ body {
     background: black;
 }
 
-* {
-    text-rendering: geometricPrecision;
-    -webkit-font-smoothing: none;
-}
 
 canvas {
     display: block;
     image-rendering: pixelated;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#overlay {
+    display: none;
+    /* z-index: 100;
+    border: 1px solid red; */
 }
