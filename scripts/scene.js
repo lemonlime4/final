@@ -120,11 +120,11 @@ export const lights = [
     // top
     makePointLight(
         5.5, 4, 2.5,
-        10, 6
+        12, 6
     ),
     makePointLight(
         8.5, 4, 2.5,
-        10, 6
+        12, 6
     ),
     makePointLight(
         7, -2, 2.5,
@@ -163,8 +163,8 @@ export const lights = [
 
     // bottom
     makePointLight(
-        2.5, 4, 17.2,
-        6, 6
+        2, 4, 17.2,
+        9, 7
     ),
     makePointLight(
         5.2, 4, 17.2,
@@ -175,7 +175,7 @@ export const lights = [
         5, 6
     ),
     makePointLight(
-        4, -1, 17.2,
+        3, -1, 17.2,
         2, 6,
     ),
     makePointLight(
@@ -187,7 +187,7 @@ export const lights = [
     // storage
     makePointLight(
         3.6, 5, 10.1,
-        12, 8
+        15, 8
     ),
     makePointLight(
         3.6, 2, 10.1,

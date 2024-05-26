@@ -78,39 +78,6 @@ vec3 dither(vec3 color) {
              return srgbToLinear(palette[i]);
         }
     }
-    
-    // // Fill the candidate array
-    // int candidates[ditherIterations];
-    // vec3 error = vec3(0, 0, 0);
-
-    // for (int i = 0; i < ditherIterations; i++)
-    // {
-    //     vec3 goal = color + error * ditherErrorFactor;
-    //     int closestIndex = closestColor(goal);
-        
-    //     candidates[i] = closestIndex;
-    //     error += color - srgbToLinear(palette[closestIndex]);
-    // }
-
-    // // Sort the candidate array by luminance (bubble sort)
-    // for (int i = ditherIterations - 1; i > 0; i--) 
-    // {
-    //   for (int j = 0; j < i; j++) 
-    //   {
-    //       if (luminance(palette[candidates[j]]) > luminance(palette[candidates[j+1]])) 
-    //       { 
-    //           // Swap the candidates
-    //           int t = candidates[j]; 
-    //           candidates[j] = candidates[j+1]; 
-    //           candidates[j+1] = t; 
-    //       }
-    //   }
-    // }
-
-    // // Select from the candidate array, using the value in the threshold matrix
-    // ivec2 coord = ivec2(floor(gl_FragCoord)) % textureSize(threshold, 0);
-    // int threshold = int(float(ditherIterations - 1) * texelFetch(threshold, coord, 0).x);
-    // return srgbToLinear(palette[candidates[threshold]]);
 }
 
 void main() {
