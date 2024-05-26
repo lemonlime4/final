@@ -97,7 +97,9 @@ export class MenuContext extends Context {
                 );
             }
 
-            if (this.time > 7) this.state += 1;
+            if (this.time > 7) {
+                ctx.fillText('>>', x, y + 4 * dy)
+            };
         }
 
         if (this.state === states.transition) {
@@ -130,6 +132,12 @@ export class MenuContext extends Context {
         if (this.state === states.initial) {
             if (this.newGameBounds.containsPoint(this.mouse.position))
                 this.state = states.introduction;
+        }
+        if (this.state === states.introduction) {
+            if (this.time > 7) {
+                this.state = states.transition;
+                this.time = 0;
+            }
         }
     }
 }
