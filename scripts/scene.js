@@ -211,7 +211,7 @@ export const lights = [
 
     // storage
     makePointLight(
-        3.6, 5, 10.1,
+        3.6, 4, 10.1,
         15, 8
     ),
     makePointLight(

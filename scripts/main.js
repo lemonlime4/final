@@ -151,7 +151,7 @@ scene.add(player.model);
 import { MenuContext } from './contexts/menu.js';
 import { GameContext } from './contexts/game.js';
 const contextData = { postShader, camera, mouse, overlay };
-let context = new MenuContext(contextData);
+let context = new GameContext(contextData);
 
 
 

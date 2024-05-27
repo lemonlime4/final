@@ -1,7 +1,7 @@
-const dialog = document.querySelector('#dialog');
-dialog.style.visibility = 'hidden';
+const container = document.querySelector('#dialog');
+container.style.visibility = 'hidden';
 
 
-export function a() {
+export function dialog(text, duration) {
     ;
 }
