@@ -11,10 +11,11 @@ export class TopDoorInteraction {
             new THREE.Vector3(4.3, 0, 5.7),
             new THREE.Vector3(6, 2.25, 6.3)
         );
-        this.cursor = 'walkCursor'
+        this.cursor = 'walkCursor';
     }
 
     init() {
+        this.walked = false;
         player.moveTo(new THREE.Vector3(5.6, 0, 5.4));
     }
 
@@ -24,7 +25,6 @@ export class TopDoorInteraction {
             setTimeout(() => {
                 player.model.position.set(5.6, 0, 7.3);
                 this.done = true;
-                this.walked = false;
             }, 250);
         }
     }
