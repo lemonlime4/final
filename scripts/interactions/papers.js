@@ -12,11 +12,11 @@ export class PapersInteraction {
             new THREE.Vector3(5.8, 0, 8.4),
             new THREE.Vector3(7, 0.2, 9.3)
         );
-        this.contents = document.createElement('p');
-        this.contents.textContent = papersText;
+        this.contents = new DOMParser().parseFromString(papersText, 'text/html').body.children;
     }
 
     init() {
+        this.walked = false;
         player.moveTo(new THREE.Vector3(5.7, 0, 8.8));
     }
 
@@ -24,11 +24,8 @@ export class PapersInteraction {
         if (player.path !== null || this.walked) return;
         this.walked = true;
         startInteraction(
-            () => {
-                this.walked = false;
-                this.done = true;
-            },
-            [this.contents]
+            () => this.done = true,
+            this.contents
         );
     }
 }

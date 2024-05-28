@@ -36,12 +36,14 @@ export class DevicesInteraction {
         })
         this.secretNumber = document.createElement('p');
         this.secretNumber.textContent = '123';
+        this.secretNumber.style.alignSelf = 'center';
+        this.secretNumber.style.font = '4rem Dogica Pixel';
         this.secretNumber.style.display = 'none';
-        this.contents.appendChild(this.secretNumber);
     }
 
     init() {
         player.moveTo(new THREE.Vector3(0.7, -0, 17));
+        this.walked = false;
     }
 
     update() {
@@ -49,10 +51,9 @@ export class DevicesInteraction {
         this.walked = true;
         startInteraction(
             () => {
-                this.walked = false;
                 this.done = true;
             },
-            [this.contents]
+            [this.contents, this.secretNumber]
         );
     }
 }

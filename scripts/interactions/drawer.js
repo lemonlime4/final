@@ -13,11 +13,11 @@ export class DrawerInteraction {
             new THREE.Vector3(10.4, 0, 1.6),
             new THREE.Vector3(11.5, 1.2, 4)
         );
-        this.contents = document.createElement('p');
-        this.contents.textContent = drawerText;
+        this.contents = new DOMParser().parseFromString(drawerText, 'text/html').body.children;
     }
 
     init() {
+        this.walked = false;
         player.moveTo(new THREE.Vector3(10, 0, 2.8));
     }
 
@@ -25,11 +25,8 @@ export class DrawerInteraction {
         if (player.path !== null || this.walked) return;
         this.walked = true;
         startInteraction(
-            () => {
-                this.walked = false;
-                this.done = true;
-            },
-            [this.contents]
+            () => this.done = true,
+            this.contents
         );
     }
 }

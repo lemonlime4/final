@@ -13,23 +13,19 @@ export class ElectricalPanelInteraction {
             new THREE.Vector3(18.7, 1.6, 12.3)
         );
         this.element = document.createElement('img');
-        this.toControlPanel = 'true';
     }
 
     init() {
-        player.walkTo(new THREE.Vector3(17.5, 0, 11.5));
+        this.walked = false;
+        player.moveTo(new THREE.Vector3(17.5, 0, 11.5));
     }
 
     update() {
-        if (player.path !== null || !this.walked) {
-            this.walked = true;
-            startInteraction(
-                () => {
-                    this.walked = false;
-                    this.done = true;
-                },
-                [this.container]
-            );
-        }
+        if (player.path !== null || this.walked) return;
+        this.walked = true;
+        startInteraction(
+            () => this.done = true,
+            [this.container]
+        );
     }
 }

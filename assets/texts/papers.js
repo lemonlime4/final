@@ -1,4 +1,4 @@
 export const papersText = `
-Papers Text :)
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris nec pharetra quam. In semper blandit ligula et lacinia. Etiam bibendum pellentesque orci, id dapibus felis faucibus at. Aenean elit turpis, dapibus vitae ex vitae, ullamcorper tincidunt leo. Sed aliquam sapien at turpis fringilla fermentum. Aliquam quam nunc, mattis sit amet pulvinar at, tristique ut nunc. Nunc nunc mi, facilisis in ipsum quis, hendrerit gravida est. Duis sit amet pulvinar urna. Cras sodales dui non nulla sodales mollis. Duis elementum convallis commodo. Vivamus non ultrices augue. Donec vulputate diam quis luctus euismod. Phasellus sagittis orci vitae ex fringilla, in hendrerit metus ultrices. Nullam imperdiet lacinia sem, at mollis nibh.
+<p>IN CASE OF EMERGENCY</p>
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum posuere varius magna a ornare. Etiam imperdiet scelerisque elit, nec egestas magna pulvinar sit amet. Proin tristique ex vel augue fermentum venenatis. Aliquam in lacus varius, fermentum odio nec, aliquam diam. Pellentesque iaculis faucibus porttitor. Praesent non est mattis, tempus risus vel, cursus arcu. Vestibulum nec iaculis lacus.</p>
 `;
