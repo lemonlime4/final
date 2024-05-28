@@ -5,10 +5,10 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 
 
+THREE.ColorManagement.enabled = true;
 
 
 // scene
@@ -63,17 +63,20 @@ const postShader = new ShaderPass({
     name: 'Post processing shader',
     uniforms: {
         tDiffuse: { value: null },
-        overlay: { value: null },
         threshold: {
             value: textureLoader.load(options.ditherThresholdMap)
         },
-        normalCursor: {
+        wasdIcon: {
+            value: textureLoader.load('bayer.png')
+        },
+        mouseIcon: {
             value: textureLoader.load('bayer.png')
         },
 
+        overlay: { value: null },
         resolution: { value: new THREE.Vector2() },
-        mousePosition: { value: new THREE.Vector2() },
-        mouseState: { value: 1 },
+        controlIconState: { value: 2 },
+
 
         alarmed: { value: false },
     },
@@ -83,7 +86,7 @@ const postShader = new ShaderPass({
 composer.addPass(postShader);
 composer.addPass(new OutputPass());
 
-
+// postShader.uniforms.controlIconState.value = 1;
 
 
 
@@ -99,14 +102,14 @@ const overlay = {
 
 
 // mouse.position inputs
+
 const mouse = {
     position: new THREE.Vector2(),
-    updateUniforms() {
-        postShader.uniforms.mousePosition.value.set(
-            this.position.x,
-            overlay.canvas.height - this.position.y
-        );
-    }
+    states: {
+        normal: 0,
+        interaction: 1,
+    },
+    state: 0,
 };
 
 
@@ -155,13 +158,17 @@ let context = new GameContext(contextData);
 
 
 
+window.scene = scene;
+import { walkInteractions } from './interactions/interactions.js';
+for (const x of walkInteractions) {
+    scene.add(new THREE.Box3Helper(x.box));
+}
 
 window.c = camera;
 
 window.addEventListener('mousemove', event => {
     mouse.position.set(event.clientX, event.clientY)
         .multiplyScalar(options.pixelRatio);
-    mouse.updateUniforms();
     context.handleMousemove(event);
 });
 
@@ -194,7 +201,6 @@ window.addEventListener('keyup', event => {
             new THREE.Vector2(0, 0),
             new THREE.Vector2(window.innerWidth, window.innerHeight)
         );
-        mouse.updateUniforms();
         context.handleResize();
     }
     onResize();
@@ -231,11 +237,6 @@ requestAnimationFrame(function tick(timestamp) {
 
 
 
-
-import { walkInteractions } from './scene.js';
-for (const x of walkInteractions) {
-    scene.add(new THREE.Box3Helper(x.box));
-}
 
 
 

@@ -1,16 +1,15 @@
 import * as THREE from 'three';
 import { player } from '../player.js';
 import { options } from '../options.js';
-
+import { enterInitialCameraEuler } from '../scene.js';
 
 
 export class FirstPersonController {
-    constructor({ camera, mouse }) {
-        console.log('switch to first person');
+    constructor({ postShader, camera, mouse }) {
         this.isFirstPerson = true;
+        this.gameFinished = false;
         this.camera = camera;
-        this.cameraEuler = new THREE.Euler(0, 0, 0, "YXZ")
-            .setFromQuaternion(camera.quaternion);
+        this.cameraEuler = enterInitialCameraEuler.clone();
         this.keys = {
             up: false,
             left: false,
@@ -19,6 +18,9 @@ export class FirstPersonController {
         };
         this.mouseMovement = new THREE.Vector2();
 
+        document.body.querySelector('#renderOutput').requestPointerLock()
+        document.body.classList.remove(...document.body.classList);
+        postShader.uniforms.controlIconState.value = 1;
         player.model.visible = false;
         camera.fov = options.firstPersonFov;
         camera.updateProjectionMatrix();
@@ -33,7 +35,7 @@ export class FirstPersonController {
             0,
             this.keys.up - this.keys.down
         ).normalize()
-            .multiplyScalar(dt * options.walkSpeed)
+            .multiplyScalar(dt * options.firstPersonSpeed)
             .applyEuler(horizontalEuler));
         this.camera.position.y = options.firstPersonHeight;
         player.model.quaternion.setFromEuler(horizontalEuler);
@@ -51,6 +53,7 @@ export class FirstPersonController {
     }
 
     handleMousedown(event) {
+        this.gameFinished = true;
         console.log('mousedown in firstperson!!!');
     }
 

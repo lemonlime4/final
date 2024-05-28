@@ -66,57 +66,7 @@ export const firstPersonBounds = new THREE.Box3(
 );
 
 
-
-export const walkInteractions = [
-    { // to initial
-        box: new THREE.Box3(
-            new THREE.Vector3(2.3, -.1, .3),
-            new THREE.Vector3(4.5, 2.5, 1)
-        ),
-        target: new Map([
-            ["Top", new THREE.Vector3(1.7, 0, 0.9)]
-        ]),
-    },
-    { // to storage
-        box: new THREE.Box3(
-            new THREE.Vector3(4.3, -.1, 5.5),
-            new THREE.Vector3(6.3, 2.5, 6)
-        ),
-        target: new Map([
-            ["Top", new THREE.Vector3(5.3, 0, 7.3)]
-        ]),
-    },
-    {
-        box: new THREE.Box3(
-            new THREE.Vector3(10, -.1, 5.5),
-            new THREE.Vector3(12, 2.5, 8)
-        ),
-        target: new Map([
-            ["Top", new THREE.Vector3(11, 0, 7.8)],
-            ["Boiler", new THREE.Vector3(11, 0, 5.6)]
-        ]),
-    },
-    {
-        box: new THREE.Box3(
-            new THREE.Vector3(10.1, -.1, 12.1),
-            new THREE.Vector3(12, 2.5, 14.6)
-        ),
-        target: new Map([
-            ["Boiler", new THREE.Vector3(11, 0, 14.5)],
-            ["Bottom", new THREE.Vector3(11, 0, 12.4)],
-        ]),
-    },
-    {
-        box: new THREE.Box3(
-            new THREE.Vector3(.6, -.1, 13.2),
-            new THREE.Vector3(2.5, 2.5, 14.8)
-        ),
-        target: new Map([
-            ["Bottom", new THREE.Vector3(1.7, 0, 13.3)],
-            ["Storage", new THREE.Vector3(1.7, 0, 14.5)],
-        ]),
-    },
-];
+export const enterInitialCameraEuler = new THREE.Euler(-0.2, 1, 0, "YXZ");
 
 
 function makePointLight(x, y, z, intensity, radius, color = 0xffffff) {
@@ -200,11 +150,11 @@ export const lights = [
         5, 6
     ),
     makePointLight(
-        3, -1, 17.2,
+        3, -2, 17.2,
         2, 6,
     ),
     makePointLight(
-        6, -1, 17.2,
+        6, -2, 17.2,
         2, 6,
     ),
 

@@ -1,17 +1,21 @@
 const int ditherIterations = 32;
 const float ditherErrorFactor = 0.8;
 const float overlayThreshold = 0.7;
+const int controlIconOffset = 16;
 
-uniform vec2 resolution;
 uniform sampler2D tDiffuse;
+uniform ivec2 resolution;
+
 uniform sampler2D overlay;
 uniform sampler2D threshold;
-uniform sampler2D normalCursor;
 
-uniform vec2 mousePosition;
-uniform int mouseState;
+uniform sampler2D wasdIcon;
+uniform sampler2D mouseIcon;
+uniform int controlIconState;
 
 uniform bool alarmed;
+
+
 
 const float PI = 3.1415926535897932384626433832795;
 const float INF = 3.4e38;
@@ -109,9 +113,9 @@ vec3 dither(vec3 color, ivec2 fragCoord) {
     Screenspace overlay
 */
 
-vec3 overlayImage(vec3 baseColor, sampler2D image, vec2 pos, ivec2 fragCoord)  {
+vec3 overlayImage(vec3 baseColor, sampler2D image, vec2 pos, ivec2 fragCoord, ivec2 offset)  {
     ivec2 size = textureSize(image, 0);
-    ivec2 coord = fragCoord - ivec2(round(pos));
+    ivec2 coord = fragCoord - ivec2(round(pos)) - offset * textureSize(image, 0);
     bool contained = 0 <= coord.x && coord.x < size.x
                   && 0 <= coord.y && coord.y < size.y;
     vec4 overlay = texelFetch(image, coord, 0);
@@ -147,16 +151,15 @@ void main() {
         step(overlayThreshold, overlayColor.w)
     );
     
-    #define OVERLAY_IMAGE(S, O) color = overlayImage(color, S, mousePosition, fragCoord - O)
-    switch (mouseState) {
-        case 0: break;
-        case 1:
-            OVERLAY_IMAGE(normalCursor, ivec2(0, -8));
-            break;
-        case 2:
-            OVERLAY_IMAGE(tDiffuse, ivec2(0,0));
+    
+    ivec2 overlayLocation = resolution - ivec2(controlIconOffset);
+    if (controlIconState == 1) {
+        color = overlayImage(color, wasdIcon, vec2(overlayLocation), fragCoord, ivec2(-1, -1));
     }
-    #undef OVERLAY_IMAGE
+    if (controlIconState == 2) {
+        color = overlayImage(color, mouseIcon, vec2(overlayLocation), fragCoord, ivec2(-1, -1));
+    }
+
 
     gl_FragColor = vec4(color, 1);
 }

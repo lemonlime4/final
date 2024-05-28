@@ -1,0 +1,4 @@
+export const papersText = `
+Papers Text :)
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris nec pharetra quam. In semper blandit ligula et lacinia. Etiam bibendum pellentesque orci, id dapibus felis faucibus at. Aenean elit turpis, dapibus vitae ex vitae, ullamcorper tincidunt leo. Sed aliquam sapien at turpis fringilla fermentum. Aliquam quam nunc, mattis sit amet pulvinar at, tristique ut nunc. Nunc nunc mi, facilisis in ipsum quis, hendrerit gravida est. Duis sit amet pulvinar urna. Cras sodales dui non nulla sodales mollis. Duis elementum convallis commodo. Vivamus non ultrices augue. Donec vulputate diam quis luctus euismod. Phasellus sagittis orci vitae ex fringilla, in hendrerit metus ultrices. Nullam imperdiet lacinia sem, at mollis nibh.
+`;

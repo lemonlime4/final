@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { Context } from './interface.js';
 import { player } from '../player.js';
 import { options } from '../options.js';
-import { } from '../dialog.js';
 
 
 
@@ -28,6 +27,7 @@ export class MenuContext extends Context {
         this.pixelFontSize = 0;
         this.transitionToGameContext = false;
 
+        postShader.uniforms.controlIconState.value = 1;
         player.model.visible = false;
         camera.position.set(-1.1059, 1.2932, 0.002416);
         camera.lookAt(-1.36068, 1.24829, 0);
@@ -39,12 +39,12 @@ export class MenuContext extends Context {
             quaternion: camera.quaternion.clone(),
             fov: camera.fov
         };
-        this.targetCameraPosition = player.model.position.clone();
+        this.targetCameraPosition = new THREE.Vector3();
         this.targetCameraPosition.y = options.firstPersonHeight;
+        this.handleResize();
     }
 
-    exit() {
-    }
+
 
     update(dt) {
         this.overlay.updateUniforms();
@@ -57,7 +57,7 @@ export class MenuContext extends Context {
             const left = canvas.width / 2 - 0.35 * canvas.height;
             {
                 ctx.textBaseline = 'alphabetic';
-                ctx.font = 0.08 * window.innerHeight + 'px Bebas Neue';
+                ctx.font = 0.16 * window.innerHeight * options.pixelRatio + 'px Bebas Neue';
                 ctx.fillText(
                     options.gameTitle,
                     left,
@@ -108,10 +108,9 @@ export class MenuContext extends Context {
                     x, y + 3 * dy
                 );
             }
-
-            if (this.time > 7) {
+            if (this.time > 5.5) {
                 ctx.fillText('>>', x, y + 4 * dy)
-            };
+            }
         }
 
         if (this.state === states.alarm) {
@@ -133,7 +132,6 @@ export class MenuContext extends Context {
         }
 
         if (this.state === states.transition) {
-            ;
             this.time += dt;
             const t = Math.min(1, this.time / 1.5);
             this.camera.position.lerpVectors(
@@ -144,13 +142,14 @@ export class MenuContext extends Context {
             this.camera.fov = this.oldCamera.fov * (1 - t)
                 + options.firstPersonFov * t;
             this.camera.updateProjectionMatrix();
+            if (this.time > 1.5) this.transitionToGameContext = true;
         }
     }
 
     handleResize() {
         // this.overlay.updateUniforms();
         const { width, height } = this.overlay.canvas;
-        this.pixelFontSize = Math.round(0.025 * window.innerHeight / 8) * 8;
+        this.pixelFontSize = Math.round(0.05 * window.innerHeight * options.pixelRatio / 8) * 8;
         const a = 0.2 * this.pixelFontSize;
         const b = 1.3 * this.pixelFontSize;
         const y = height / 2 + 0.03 * height;
@@ -174,14 +173,9 @@ export class MenuContext extends Context {
                 this.state = states.introduction;
         }
         if (this.state === states.introduction) {
-            if (this.time > 7) {
+            if (this.time > 5.5) {
                 this.state = states.alarm;
                 this.time = 0;
-            }
-        }
-        if (this.state === states.transition) {
-            if (this.time > 3) {
-                this.transitionToGameContext = true;
             }
         }
     }
