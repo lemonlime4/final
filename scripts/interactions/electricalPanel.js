@@ -5,14 +5,19 @@ import { startInteraction } from '../dialog.js';
 
 
 export class ElectricalPanelInteraction {
-    constructor() {
+    constructor({ state }) {
         this.done = false;
         this.walked = false;
         this.box = new THREE.Box3(
             new THREE.Vector3(18, 0.4, 10.7),
             new THREE.Vector3(18.7, 1.6, 12.3)
         );
+
         this.element = document.createElement('img');
+        this.element.addEventListener('click', () => {
+            state.devicesPowered = !state.devicesPowered;
+            console.log('machine is recieving power: ' + state.devicesPowered);
+        })
     }
 
     init() {
@@ -25,7 +30,7 @@ export class ElectricalPanelInteraction {
         this.walked = true;
         startInteraction(
             () => this.done = true,
-            [this.container]
+            [this.element]
         );
     }
 }

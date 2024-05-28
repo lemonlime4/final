@@ -10,6 +10,7 @@ export class StorageExitInteraction {
             new THREE.Vector3(0, 0, 8.1),
             new THREE.Vector3(0.3, 2.3, 9.3)
         );
+        this.cursor = 'walkCursor';
     }
 
     init() {

@@ -7,7 +7,7 @@ import { startInteraction } from '../dialog.js';
 const cellNeighbors = [[0, 1, 3], [1, 0, 2, 4], [2, 1, 5], [3, 0, 4, 6], [4, 1, 3, 5, 7], [5, 2, 4, 8], [6, 3, 7], [7, 4, 6, 8], [8, 5, 7]];
 
 export class DevicesInteraction {
-    constructor() {
+    constructor({ unlockSafeCode }) {
         this.done = false;
         this.walked = false;
         this.box = new THREE.Box3(
@@ -35,24 +35,21 @@ export class DevicesInteraction {
             return cell;
         })
         this.secretNumber = document.createElement('p');
-        this.secretNumber.textContent = '123';
-        this.secretNumber.style.alignSelf = 'center';
-        this.secretNumber.style.font = '4rem Dogica Pixel';
+        this.secretNumber.textContent = unlockSafeCode
+            .reduce((x, y) => x + y, '');
         this.secretNumber.style.display = 'none';
     }
 
     init() {
-        player.moveTo(new THREE.Vector3(0.7, -0, 17));
         this.walked = false;
+        player.moveTo(new THREE.Vector3(0.7, -0, 17));
     }
 
     update() {
         if (player.path !== null || this.walked) return;
         this.walked = true;
         startInteraction(
-            () => {
-                this.done = true;
-            },
+            () => this.done = true,
             [this.contents, this.secretNumber]
         );
     }

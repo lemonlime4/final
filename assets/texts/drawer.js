@@ -1,3 +1,8 @@
 export const drawerText = `
-<p>Lip ip ip ip ip ip turi ip ip ip ip</p>
+<p>Machine Use Manual</p>
+<p>...</p>
+<p>
+Before use, ensure that the machine is recieving power.
+</p>
+<p>...</p>
 `;

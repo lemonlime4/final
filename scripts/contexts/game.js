@@ -11,6 +11,7 @@ import { initialToTopPosition } from '../interactions/interactions.js';
 
 import { FirstPersonController } from '../controllers/firstPerson.js';
 import { FixedCameraController } from '../controllers/fixedCamera.js';
+import { audio } from '../audio.js';
 
 
 
@@ -29,8 +30,17 @@ export class GameContext extends Context {
         this.mouse = mouse;
         this.overlay = overlay;
         this.transitionToMenuContext = false;
-
-
+        
+        this.state = {
+            hasKey: false,
+            devicesPowered: false,
+        };
+        
+        this.unlockSafeCode = [0,0,0,0]
+        .map(() => Math.floor(9 * Math.random()));
+        
+        
+        audio.background.play();
         overlay.ctx.clearRect(0, 0, overlay.canvas.width, overlay.canvas.height);
         const cameraQuaternion = camera.quaternion.clone();
         this.controller = new FirstPersonController(this);

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Context } from './interface.js';
+import { audio } from '../audio.js';
 import { player } from '../player.js';
 import { options } from '../options.js';
 
@@ -176,6 +177,7 @@ export class MenuContext extends Context {
             if (this.time > 5.5) {
                 this.state = states.alarm;
                 this.time = 0;
+                audio.alarm.play();
             }
         }
     }

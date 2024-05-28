@@ -10,6 +10,7 @@ export class StorageDoorInteraction {
             new THREE.Vector3(4.3, 0, 6.3),
             new THREE.Vector3(6.3, 2.3, 7)
         );
+        this.cursor = 'walkCursor';
     }
 
     init() {

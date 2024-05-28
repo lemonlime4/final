@@ -12,7 +12,7 @@ export class PapersInteraction {
             new THREE.Vector3(5.8, 0, 8.4),
             new THREE.Vector3(7, 0.2, 9.3)
         );
-        this.contents = new DOMParser().parseFromString(papersText, 'text/html').body.children;
+        this.contents = [...new DOMParser().parseFromString(papersText, 'text/html').body.children];
     }
 
     init() {

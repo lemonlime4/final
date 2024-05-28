@@ -1,4 +1,4 @@
-const int ditherIterations = 32;
+const int ditherIterations = 8;
 const float ditherErrorFactor = 0.8;
 const float overlayThreshold = 0.7;
 const int controlIconOffset = 16;

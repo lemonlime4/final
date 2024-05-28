@@ -1,5 +1,6 @@
-# final
-
+## Requirements
+- WebGL2
+- GPU rasterization preferably
 
 ## Credits
 

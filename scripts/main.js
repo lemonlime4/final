@@ -158,13 +158,7 @@ let context = new GameContext(contextData);
 
 
 
-window.scene = scene;
-import { walkInteractions } from './interactions/interactions.js';
-for (const x of walkInteractions) {
-    scene.add(new THREE.Box3Helper(x.box));
-}
 
-window.c = camera;
 
 window.addEventListener('mousemove', event => {
     mouse.position.set(event.clientX, event.clientY)
@@ -172,8 +166,10 @@ window.addEventListener('mousemove', event => {
     context.handleMousemove(event);
 });
 
+import { audio } from './audio.js';
 window.addEventListener('mousedown', event => {
     context.handleMousedown(event);
+    audio.click.cloneNode().play();
 })
 
 window.addEventListener('keydown', event => {
@@ -251,22 +247,3 @@ import Stats from 'three/addons/libs/stats.module.js';
         requestAnimationFrame(updateStats);
     })()
 }
-
-const axes = new THREE.AxesHelper();
-axes.position.y = 1;
-scene.add(axes);
-
-
-// for (const object of scene.children) {
-// 	scene.remove(object);
-// }
-// import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-// const l0 = new DRACOLoader();
-// l0.setDecoderPath('https://unpkg.com/three@0.164.1/examples/jsm/libs/draco/')
-// scene.add(await new Promise(res => new GLTFLoader().setDRACOLoader(l0).load('LittlestTokyo.glb', gltf => {
-// 	gltf.scene.scale.set(.05, .05, .05)
-// 	res(gltf.scene);
-// })))
-// scene.add(new THREE.HemisphereLight(0xffffff));
-// camera.position.set(21.5, 1, 10.1);
-// camera.quaternion.set(-0.07064461439650073, 0.5583248786086188, 0.04779616577236755, 0.8252261477443024)

@@ -13,7 +13,7 @@ export class DrawerInteraction {
             new THREE.Vector3(10.4, 0, 1.6),
             new THREE.Vector3(11.5, 1.2, 4)
         );
-        this.contents = new DOMParser().parseFromString(drawerText, 'text/html').body.children;
+        this.contents = [...new DOMParser().parseFromString(drawerText, 'text/html').body.children];
     }
 
     init() {
@@ -23,6 +23,7 @@ export class DrawerInteraction {
 
     update() {
         if (player.path !== null || this.walked) return;
+        console.log(this.contents);
         this.walked = true;
         startInteraction(
             () => this.done = true,

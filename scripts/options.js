@@ -1,7 +1,7 @@
 // Factored out a bunch of constants to make them easier to edit.
 
 export const options = {
-    gameTitle: 'AMONG US',
+    gameTitle: 'BALLISTIC',
     maxDt: 1000 / 20,
     fov: 45,
     pixelRatio: 1 / 2,

@@ -82,22 +82,3 @@ export class WalkInteraction {
             this.done = true;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

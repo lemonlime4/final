@@ -53,7 +53,7 @@ export class FirstPersonController {
     }
 
     handleMousedown(event) {
-        this.gameFinished = true;
+        // this.gameFinished = true;
         console.log('mousedown in firstperson!!!');
     }
 

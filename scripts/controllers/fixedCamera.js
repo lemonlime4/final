@@ -17,27 +17,27 @@ import {
 } from '../interactions/interactions.js';
 
 export class FixedCameraController {
-    constructor({ postShader, camera, mouse, overlay }) {
+    constructor({ postShader, camera, mouse, overlay, unlockSafeCode, state }) {
         this.isFixedCamera = true;
         this.camera = camera;
         this.mouse = mouse;
         this.overlay = overlay;
         this.raycaster = new THREE.Raycaster();
+
+        this.state = state;
+        this.unlockSafeCode = unlockSafeCode;
         this.interactions = [
-            new DevicesInteraction(),
-            new DrawerInteraction(),
-            new ElectricalPanelInteraction(),
-            new PapersInteraction(),
-            new SafeInteraction(),
-            new StorageDoorInteraction(),
-            new StorageExitInteraction(),
-            new ThingInteraction(),
-            new TopDoorInteraction(),
+            new DevicesInteraction(this),
+            new DrawerInteraction(this),
+            new ElectricalPanelInteraction(this),
+            new PapersInteraction(this),
+            new SafeInteraction(this),
+            new StorageDoorInteraction(this),
+            new StorageExitInteraction(this),
+            new ThingInteraction(this),
+            new TopDoorInteraction(this),
         ];
 
-        for (const i of this.interactions) {
-            window.scene.add(new THREE.Box3Helper(i.box));
-        }
         this.interaction = null;
 
         document.exitPointerLock();
