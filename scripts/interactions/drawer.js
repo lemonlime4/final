@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { player } from '../player.js';
 import { startInteraction } from '../dialog.js';
 import { drawerText } from '../../assets/texts/drawer.js';
+import { audio } from '../audio.js';
 
 
 
@@ -23,10 +24,15 @@ export class DrawerInteraction {
 
     update() {
         if (player.path !== null || this.walked) return;
-        console.log(this.contents);
         this.walked = true;
+        audio.drawerOpen.currentTime = 0;
+        audio.drawerOpen.play();
         startInteraction(
-            () => this.done = true,
+            () => {
+                audio.drawerClose.currentTime = 0;
+                audio.drawerClose.play();
+                this.done = true
+            },
             this.contents
         );
     }

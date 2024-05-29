@@ -1,16 +1,18 @@
 import * as THREE from 'three';
 import { player } from '../player.js';
 import { startInteraction } from '../dialog.js';
+import { audio } from '../audio.js';
 
 
 export class SafeInteraction {
-    constructor({ unlockSafeCode }) {
+    constructor({ state, unlockSafeCode }) {
         this.done = false;
         this.walked = false;
         this.box = new THREE.Box3(
             new THREE.Vector3(0.2, 0, 11.5),
             new THREE.Vector3(1, 1.1, 12.3)
         );
+
         this.contents = new DOMParser().parseFromString(`
         <div id="safeInteraction">
             <button class="up" id="up0"></button>
@@ -27,21 +29,26 @@ export class SafeInteraction {
             <button class="down" id="down3"></button>
         </div>
         `, 'text/html').body.firstChild;
-        this.unlockMessage = document.createElement('p');
-        this.unlockMessage.textContent = 'Unlocked';
-        this.unlockMessage.style.display = 'none';
         this.digits = [];
+
         this.safeUnlocked = false;
+        const unlockMessage = document.createElement('span');
+        unlockMessage.textContent = 'Unlocked';
+        unlockMessage.style.visibility = 'hidden';
+        this.contents.appendChild(unlockMessage);
+
         // implicitly convert textContent to number
         const checkFinished = () => {
-            console.log(this.digits);
             if (this.digits[0].textContent == unlockSafeCode[0] &&
                 this.digits[1].textContent == unlockSafeCode[1] &&
                 this.digits[2].textContent == unlockSafeCode[2] &&
                 this.digits[3].textContent == unlockSafeCode[3]) {
                 this.safeUnlocked = true;
-                this.unlockMessage.style.display = 'block';
-                console.log('unlocked');
+                unlockMessage.style.visibility = 'visible';
+                state.hasKey = true;
+                state.update();
+                audio.getKey.currentTime = 0;
+                audio.getKey.play();
             }
         }
         const changeListener = (offset, indices) => () => {
@@ -52,18 +59,18 @@ export class SafeInteraction {
             }
             checkFinished();
         };
-        for (const indices of [[0,1],[1,0,2],[2,1,3],[3,2]]) {
-            this.digits[indices[0]] = this.contents.querySelector('#digit'+indices[0]);
-            this.contents.querySelector('#up'+indices[0])
+        for (const indices of [[0, 1], [1, 0, 2], [2, 1, 3], [3, 2]]) {
+            this.digits[indices[0]] = this.contents.querySelector('#digit' + indices[0]);
+            this.contents.querySelector('#up' + indices[0])
                 .addEventListener('click', changeListener(1, indices));
-            this.contents.querySelector('#down'+indices[0])
+            this.contents.querySelector('#down' + indices[0])
                 .addEventListener('click', changeListener(-1, indices));
         }
     }
 
     init() {
         this.walked = false;
-        player.moveTo(new THREE.Vector3(1.8, 0, 11.9));
+        player.moveTo(new THREE.Vector3(1.4, 0, 11.9));
     }
 
     update() {
@@ -71,7 +78,7 @@ export class SafeInteraction {
         this.walked = true;
         startInteraction(
             () => this.done = true,
-            [this.contents, this.unlockMessage]
+            [this.contents]
         );
     }
 }

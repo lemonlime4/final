@@ -67,18 +67,21 @@ const postShader = new ShaderPass({
             value: textureLoader.load(options.ditherThresholdMap)
         },
         wasdIcon: {
-            value: textureLoader.load('bayer.png')
+            value: textureLoader.load('wasdIcon.png')
         },
         mouseIcon: {
-            value: textureLoader.load('bayer.png')
+            value: textureLoader.load('mouseIcon.png')
+        },
+        keyIcon: {
+            value: textureLoader.load('key.png')
         },
 
         overlay: { value: null },
         resolution: { value: new THREE.Vector2() },
-        controlIconState: { value: 2 },
-
 
         alarmed: { value: false },
+        hasKey: { value: false },
+        controlIconState: { value: 0 },
     },
     vertexShader: `varying vec2 UV;void main(){UV=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1);}`,
     fragmentShader: await (await fetch('./scripts/postprocessing.frag')).text()
@@ -86,7 +89,6 @@ const postShader = new ShaderPass({
 composer.addPass(postShader);
 composer.addPass(new OutputPass());
 
-// postShader.uniforms.controlIconState.value = 1;
 
 
 
@@ -117,16 +119,6 @@ const mouse = {
 
 
 
-
-
-
-
-
-
-
-
-
-
 // add map
 
 import { map, lights } from './scene.js';
@@ -151,10 +143,11 @@ scene.add(player.model);
 
 
 
+
 import { MenuContext } from './contexts/menu.js';
 import { GameContext } from './contexts/game.js';
 const contextData = { postShader, camera, mouse, overlay };
-let context = new GameContext(contextData);
+let context = new MenuContext(contextData);
 
 
 
@@ -169,7 +162,8 @@ window.addEventListener('mousemove', event => {
 import { audio } from './audio.js';
 window.addEventListener('mousedown', event => {
     context.handleMousedown(event);
-    audio.click.cloneNode().play();
+    audio.click.currentTime = 0;
+    audio.click.play();
 })
 
 window.addEventListener('keydown', event => {
@@ -203,9 +197,6 @@ window.addEventListener('keyup', event => {
     window.addEventListener('resize', onResize);
 }
 
-// window.addEventListener('blur', event => {
-// context.handleBlur(event);
-// })
 
 
 
@@ -237,9 +228,9 @@ requestAnimationFrame(function tick(timestamp) {
 
 
 // stats
-
 import Stats from 'three/addons/libs/stats.module.js';
-{
+
+if (options.enableStatistics) {
     const stats = new Stats();
     document.body.appendChild(stats.domElement);
     (function updateStats() {

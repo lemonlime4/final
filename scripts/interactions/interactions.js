@@ -18,6 +18,11 @@ export { TopDoorInteraction } from './topDoor.js';
 
 
 
+export const controlPanelBounds = new THREE.Box3(
+    new THREE.Vector3(-.09, .8, -1.3),
+    new THREE.Vector3(1.8, 1.3, -0.4)
+);
+
 
 export const initialToTopPosition = new THREE.Vector3(3.2, 0, 0.9);
 
@@ -58,7 +63,7 @@ export const walkInteractions = [
             new THREE.Vector3(3, 2.5, 14.8)
         ),
         targets: new Map([
-            ["Bottom", new THREE.Vector3(1.7, 0, 13.3)],
+            ["Bottom", new THREE.Vector3(1.7, 0, 13.2)],
             ["Storage", new THREE.Vector3(1.7, 0, 14.5)],
         ]),
     },

@@ -1,10 +1,12 @@
-## Requirements
-- WebGL2
-- GPU rasterization preferably
+## Dépendences
+- WebGL2, avec GPU si possible
 
-## Credits
+## Optimisations
+- dans `scripts/options.js`, diminuer la valeur de `pixelRatio`
+    (`1 / 6` par exemple)
+- dans `scripts/postprocessing.frag`, réduire `ditherIterations`
 
-Dithering algorithm adapted from https://www.shadertoy.com/view/dlcGzN
-Textures:
-- https://polyhaven.com/
-- https://www.pinterest.ca/pin/810788739186948099/
+
+## Ressources utilisées
+Algorithme de tramage: https://www.shadertoy.com/view/dlcGzN
+Textures: https://polyhaven.com/, Google et Pinterest

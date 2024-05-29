@@ -1,5 +1,7 @@
 * {
     box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 button {
@@ -14,8 +16,6 @@ body {
     background: black;
     text-rendering: geometricPrecision;
     -webkit-font-smooth: none;
-    user-select: none;
-    -webkit-user-select: none;
     font: 24px 'Dogica Pixel';
     line-height: 1.5em;
     color: white;
@@ -83,17 +83,19 @@ button:hover {}
 
 
 #interaction p:first-child {
-    margin-top: 2rem;
+    margin-top: 4rem;
 }
+
 #interaction p {
-    margin: 1rem 4rem 0 4rem;
+    margin-top: 1rem;
+    max-width: 32rem;
+    align-self: center;
 }
 
 #devicesInteraction {
-    margin-top: 2rem;
+    margin: auto;
     display: grid;
     grid-template-columns: 15vh 15vh 15vh;
-    align-self: center;
 }
 
 #devicesInteraction .cell {
@@ -109,16 +111,21 @@ button:hover {}
     background: rgb(255 255 255 / .5);
 }
 
-#devicesInteraction + span {
-    font-size: 2rem;
-    line-height: 1.5em;
-    margin: 1em 0 0 0;
-    align-self: center;
+#devicesInteraction span {
+    display: block;
+    font-size: 6vh;
+    line-height: 1em;
+    margin-top: 3vh;
+    grid-column: span 3;
+    text-align: center;
 }
 
 
+
+
+
 #safeInteraction {
-    margin-top: 2rem;
+    margin: auto;
     display: grid;
     grid-template-columns: 12vh 12vh 12vh 12vh;
     grid-gap: 3vh;
@@ -131,19 +138,30 @@ button:hover {}
     height: 5vh;
     clip-path: polygon(0 0, 100% 0, 50% 100%);
 }
+
 #safeInteraction button.up {
     transform: scaleY(-1);
 }
+
 #safeInteraction button:hover {
     background: rgb(255 255 255 / 0.8);
 }
 
 #safeInteraction .digit {
-    font-size: 2em;
+    font-size: 8vh;
     line-height: 1.5em;
 }
 
-#safeInteraction + span {
-    margin: 1.5em 0 0 0;
+#safeInteraction span:last-of-type {
+    display: block;
+    font-size: 4vh;
+    line-height: 1em;
+    margin-top: 0.5em;
+    grid-column: span 4;
+    text-align: center;
+}
+
+#electricalInteraction {
+    height: 100%;
     align-self: center;
 }

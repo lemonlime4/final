@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { player } from '../player.js';
 import { startInteraction } from '../dialog.js';
 import { papersText } from '../../assets/texts/papers.js';
+import { audio } from '../audio.js';
 
 
 export class PapersInteraction {
@@ -23,6 +24,8 @@ export class PapersInteraction {
     update() {
         if (player.path !== null || this.walked) return;
         this.walked = true;
+        audio.paper.currentTime = 0;
+        audio.paper.play();
         startInteraction(
             () => this.done = true,
             this.contents

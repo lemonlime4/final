@@ -64,7 +64,7 @@ const interactionContainer = document.querySelector('#interaction');
 interactionContainer.style.visibility = 'hidden';
 
 
-export function startInteraction(callback, contents) {
+export function startInteraction(exitCallback, contents) {
     interactionContainer.replaceChildren(...contents);
     interactionContainer.style.visibility = 'visible';
     const eventListener = event => {
@@ -72,7 +72,7 @@ export function startInteraction(callback, contents) {
             window.removeEventListener('keydown', eventListener);
             interactionContainer.style.visibility = 'hidden';
             interactionContainer.replaceChildren();
-            callback();
+            exitCallback();
         }
     };
     window.addEventListener('keydown', eventListener);

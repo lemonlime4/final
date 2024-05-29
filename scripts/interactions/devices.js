@@ -1,22 +1,32 @@
 import * as THREE from 'three';
 import { player } from '../player.js';
-import { startInteraction } from '../dialog.js';
+import { dialogTime, startInteraction } from '../dialog.js';
+import { audio } from '../audio.js';
 
 
 
 const cellNeighbors = [[0, 1, 3], [1, 0, 2, 4], [2, 1, 5], [3, 0, 4, 6], [4, 1, 3, 5, 7], [5, 2, 4, 8], [6, 3, 7], [7, 4, 6, 8], [8, 5, 7]];
 
 export class DevicesInteraction {
-    constructor({ unlockSafeCode }) {
+    constructor({ state, unlockSafeCode }) {
         this.done = false;
         this.walked = false;
         this.box = new THREE.Box3(
             new THREE.Vector3(-0.8, 0, 15.6),
             new THREE.Vector3(0.3, 2.1, 19.2)
         );
+        this.completed = false;
+        this.state = state;
+
         this.contents = document.createElement('div');
         this.contents.id = 'devicesInteraction';
-        this.completed = false;
+
+        const secretNumber = document.createElement('span');
+        secretNumber.textContent = unlockSafeCode
+            .reduce((x, y) => x + y, '');
+        secretNumber.style.visibility = 'hidden';
+
+        // 3x3 lights out game
         this.cells = cellNeighbors.map(indices => {
             const cell = document.createElement('cell');
             cell.classList.add('cell');
@@ -28,16 +38,14 @@ export class DevicesInteraction {
                 }
                 if (this.cells.every(cell => cell.classList.contains('on'))) {
                     this.completed = true;
-                    this.secretNumber.style.display = 'block';
+                    secretNumber.style.visibility = 'visible';
                 }
             })
             this.contents.appendChild(cell);
             return cell;
         })
-        this.secretNumber = document.createElement('p');
-        this.secretNumber.textContent = unlockSafeCode
-            .reduce((x, y) => x + y, '');
-        this.secretNumber.style.display = 'none';
+        this.contents.appendChild(secretNumber);
+
     }
 
     init() {
@@ -48,10 +56,20 @@ export class DevicesInteraction {
     update() {
         if (player.path !== null || this.walked) return;
         this.walked = true;
-        startInteraction(
-            () => this.done = true,
-            [this.contents, this.secretNumber]
-        );
+        if (this.state.devicesPowered) {
+            audio.computer.currentTime = 0
+            audio.computer.play();
+            startInteraction(
+                () => this.done = true,
+                [this.contents]
+            );
+        }
+        else {
+            setTimeout(() => {
+                dialogTime('No response.', 2);
+                this.done = true;
+            }, 500);
+        }
     }
 }
 window.DevicesInteraction = DevicesInteraction;

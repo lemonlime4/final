@@ -1,14 +1,23 @@
 import * as THREE from 'three';
 import { player } from '../player.js';
 import { options } from '../options.js';
-import { enterInitialCameraEuler } from '../scene.js';
+import { map, enterInitialCameraEuler } from '../scene.js';
+import { controlPanelBounds } from '../interactions/interactions.js';
 
 
 export class FirstPersonController {
-    constructor({ postShader, camera, mouse }) {
+    constructor({ state, postShader, raycaster, camera }) {
         this.isFirstPerson = true;
         this.gameFinished = false;
+        this.state = state;
+        this.postShader = postShader;
+        this.raycaster = raycaster;
         this.camera = camera;
+        this.raycaster = new THREE.Raycaster();
+        this.mouseMovement = new THREE.Vector2();
+    }
+
+    init() {
         this.cameraEuler = enterInitialCameraEuler.clone();
         this.keys = {
             up: false,
@@ -16,16 +25,15 @@ export class FirstPersonController {
             down: false,
             right: false
         };
-        this.mouseMovement = new THREE.Vector2();
-
         document.body.querySelector('#renderOutput').requestPointerLock()
         document.body.classList.remove(...document.body.classList);
-        postShader.uniforms.controlIconState.value = 1;
         player.model.visible = false;
-        camera.fov = options.firstPersonFov;
-        camera.updateProjectionMatrix();
-        camera.position.copy(player.model.position);
-        camera.quaternion.setFromEuler(this.cameraEuler);
+        this.postShader.uniforms.controlIconState.value = 1;
+        this.camera.fov = options.firstPersonFov;
+        this.camera.updateProjectionMatrix();
+        this.camera.position.copy(player.model.position);
+        this.camera.quaternion.setFromEuler(this.cameraEuler);
+        return this;
     }
 
     update(dt) {
@@ -44,17 +52,30 @@ export class FirstPersonController {
     }
 
     handleMousemove(event) {
+        // move camera
         this.mouseMovement.set(event.movementX, event.movementY);
         this.cameraEuler.y -= this.mouseMovement.x * options.firstPersonSensitivity;
         this.cameraEuler.x -= this.mouseMovement.y * options.firstPersonSensitivity;
         this
         this.cameraEuler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.cameraEuler.x));
         this.camera.quaternion.setFromEuler(this.cameraEuler);
+        this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
+
+        // show control panel use message
+        this.hoveringAndReady = false;
+        const point = this.raycaster.ray.intersectBox(controlPanelBounds, new THREE.Vector3());
+        if (!point) return;
+        const sceneIntersects = this.raycaster.intersectObject(map);
+        if (sceneIntersects.length > 0 &&
+            sceneIntersects[0].distance < point.distanceTo(this.raycaster.ray.origin)
+        ) return;
+        if (!this.state.hasKey) return;
+        this.hoveringAndReady = true;
     }
 
     handleMousedown(event) {
-        // this.gameFinished = true;
-        console.log('mousedown in firstperson!!!');
+        if (!this.hoveringAndReady) return;
+        this.disabledMissile = true;
     }
 
     handleKeydown(event) {

@@ -11,10 +11,16 @@ export const map = await new Promise(resolve => new GLTFLoader().load(
         for (const obj of gltf.scene.children) {
             obj.material.side = THREE.FrontSide;
         }
-        console.log(gltf.scene);
         resolve(gltf.scene);
     }
 ));
+
+
+function v2(x, y) {
+    return new THREE.Vector2(x, y);
+}
+
+export const boundingPolygon = [v2(.2, -.2), v2(-.2, 0), v2(.2, .3), v2(.2, 1.1), v2(2.5, 1.1), v2(3.3, 1.3), v2(3.3, 5.3), v2(10.6, 5.3), v2(10.6, 14.8), v2(2.4, 14.8), v2(2.4, 12.9), v2(4.7, 12.9), v2(4.7, 11.7), v2(5.2, 11), v2(5.9, 10.7), v2(5.9, 7.3), v2(.7, 7.3), v2(.7, 10.6), v2(1.1, 11), v2(1.1, 12.9), v2(1.4, 12.9), v2(1.4, 14.8), v2(0.6, 14.8), v2(0.6, 19.7), v2(11.3, 19.7), v2(11.3, 11.9), v2(17.8, 11.9), v2(17.8, 9.8), v2(14.4, 9.8), v2(14, 8.3), v2(11.3, 8.3), v2(11.3, 4.5), v2(10.3, 4.5), v2(10.3, .8), v2(3.3, .8), v2(2.5, .6), v2(1.5, .6), v2(1.5, -.2)];
 
 
 

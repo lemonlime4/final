@@ -19,6 +19,7 @@ import {
 export class FixedCameraController {
     constructor({ postShader, camera, mouse, overlay, unlockSafeCode, state }) {
         this.isFixedCamera = true;
+        this.postShader = postShader;
         this.camera = camera;
         this.mouse = mouse;
         this.overlay = overlay;
@@ -39,13 +40,16 @@ export class FixedCameraController {
         ];
 
         this.interaction = null;
+    }
 
+    init() {
         document.exitPointerLock();
-        postShader.uniforms.controlIconState.value = 2;
         player.model.visible = true;
         player.stopWalking();
-        camera.fov = options.fov;
-        camera.updateProjectionMatrix();
+        this.postShader.uniforms.controlIconState.value = 2;
+        this.camera.fov = options.fov;
+        this.camera.updateProjectionMatrix();
+        return this;
     }
 
     setZone(zone) {
@@ -82,7 +86,7 @@ export class FixedCameraController {
     }
 
     handleMousemove() {
-        if (this.interaction)
+        if (this.interaction && !this.interaction.cancellable)
             return;
 
         // raycast and determine appropriate cursor
@@ -114,17 +118,17 @@ export class FixedCameraController {
 
         const closestIntersect = [
             sceneIntersects.length === 0 ? null : {
-                cursor: [],
+                cursor: null,
                 distance: sceneIntersects[0].distance,
                 interaction: new WalkInteraction(sceneIntersects[0].point),
             },
             walkIntersect.targets === null ? null : {
-                cursor: ['walkCursor'],
+                cursor: 'walkCursor',
                 distance: walkIntersect.distance,
                 interaction: new WalkInteraction(walkIntersect.targets.get(this.zoneName))
             },
             interactionIntersect.interaction === null ? null : {
-                cursor: [interactionIntersect.interaction.cursor ?? 'interactCursor'],
+                cursor: interactionIntersect.interaction.cursor ?? 'interactCursor',
                 distance: interactionIntersect.distance,
                 interaction: interactionIntersect.interaction
             }
@@ -135,8 +139,9 @@ export class FixedCameraController {
             return closest;
         }, null);
         document.body.classList.remove(...document.body.classList);
+
         if (closestIntersect)
-            document.body.classList.add(...closestIntersect.cursor);
+            document.body.classList.add(closestIntersect.cursor);
         return closestIntersect?.interaction;
     }
 };

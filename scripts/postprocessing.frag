@@ -1,7 +1,7 @@
-const int ditherIterations = 8;
+const int ditherIterations = 32;
 const float ditherErrorFactor = 0.8;
 const float overlayThreshold = 0.7;
-const int controlIconOffset = 16;
+const int iconOffset = 32;
 
 uniform sampler2D tDiffuse;
 uniform ivec2 resolution;
@@ -12,6 +12,9 @@ uniform sampler2D threshold;
 uniform sampler2D wasdIcon;
 uniform sampler2D mouseIcon;
 uniform int controlIconState;
+
+uniform sampler2D keyIcon;
+uniform bool hasKey;
 
 uniform bool alarmed;
 
@@ -113,16 +116,17 @@ vec3 dither(vec3 color, ivec2 fragCoord) {
     Screenspace overlay
 */
 
-vec3 overlayImage(vec3 baseColor, sampler2D image, vec2 pos, ivec2 fragCoord, ivec2 offset)  {
+vec3 overlayImage(vec3 baseColor, sampler2D image, ivec2 pos, ivec2 fragCoord, ivec2 offset)  {
     ivec2 size = textureSize(image, 0);
-    ivec2 coord = fragCoord - ivec2(round(pos)) - offset * textureSize(image, 0);
+    ivec2 coord = fragCoord - pos - offset * textureSize(image, 0);
     bool contained = 0 <= coord.x && coord.x < size.x
                   && 0 <= coord.y && coord.y < size.y;
+    if (!contained) return baseColor;
     vec4 overlay = texelFetch(image, coord, 0);
     return mix(
         baseColor,
-        palette[closestColor(overlay.xyz)],
-        overlay.w * (contained ? 1.0 : 0.0)
+        srgbToLinear(palette[closestColor(srgbToLinear(overlay.xyz))]),
+        step(.5, overlay.w) * (contained ? 1.0 : 0.0)
     );
 }
 
@@ -152,12 +156,17 @@ void main() {
     );
     
     
-    ivec2 overlayLocation = resolution - ivec2(controlIconOffset);
+    ivec2 controlIconLocation = resolution - ivec2(iconOffset);
     if (controlIconState == 1) {
-        color = overlayImage(color, wasdIcon, vec2(overlayLocation), fragCoord, ivec2(-1, -1));
+        color = overlayImage(color, wasdIcon, controlIconLocation, fragCoord, ivec2(-1, -1));
     }
     if (controlIconState == 2) {
-        color = overlayImage(color, mouseIcon, vec2(overlayLocation), fragCoord, ivec2(-1, -1));
+        color = overlayImage(color, mouseIcon, controlIconLocation, fragCoord, ivec2(-1, -1));
+    }
+
+    ivec2 keyIconLocation = ivec2(resolution.x - iconOffset, iconOffset);
+    if (hasKey) {
+        color = overlayImage(color, keyIcon, keyIconLocation, fragCoord, ivec2(-1, 0));
     }
 
 
