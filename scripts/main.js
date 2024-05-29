@@ -127,7 +127,6 @@ scene.add(map);
 
 for (const light of lights) {
     scene.add(light);
-    // scene.add(new THREE.PointLightHelper(light));
 };
 
 
